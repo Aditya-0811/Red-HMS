@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "ES2020",
+    "moduleResolution": "bundler",
+    "lib": ["ES6", "DOM", "DOM.Iterable"],
+    "outDir": "./static/scripts",
+    "rootDir": "./src/ts",
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": false,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "declarationDir": "./src/ts/types",
+    "sourceMap": true,
+    "removeComments": false
+  },
+  "include": ["src/ts/**/*"],
+  "exclude": ["node_modules", "venv", "staticfiles"]
+}

@@ -1,0 +1,376 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zxx">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard – Red HMS{% endblock %}</title>
+
+    <link rel="stylesheet" href="{% static 'css/stylesheet.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mmenu.css' %}">
+    <link rel="stylesheet" href="{% static 'css/perfect-scrollbar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" id="colors">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css?family=Nunito:300,400,600,700,800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,600,700,800" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <link rel="stylesheet" href="{% static 'css/red_hms.css' %}">
+    {% block extra_css %}{% endblock %}
+
+    <style>
+        :root { --primary:#ec4899; --primary-dark:#db2777; }
+        .utf_booking_listing_status { background:var(--primary); }
+
+        /* ══════════════════════════════════════════════════════════════
+           SIDEBAR HARD-FIX — loaded last, wins over stylesheet.css
+           Kills: icon circles, purple bg, border-left artifacts,
+           a:after chevrons, ul:first-child top border.
+           ══════════════════════════════════════════════════════════════ */
+
+        /* 1. ul / ul:first-child borders */
+        .utf_dashboard_navigation ul,
+        .utf_dashboard_navigation ul ul,
+        .utf_dashboard_navigation ul:first-child {
+            border:none!important; border-top:none!important;
+            background:transparent!important; background-color:transparent!important;
+            list-style:none!important; padding:0!important; margin:0!important;
+            box-shadow:none!important;
+        }
+
+        /* 2. li — every state — kill purple bg and all borders */
+        .utf_dashboard_navigation ul li,
+        .utf_dashboard_navigation ul li:hover,
+        .utf_dashboard_navigation ul li:focus,
+        .utf_dashboard_navigation ul li:focus-within,
+        .utf_dashboard_navigation ul li.active,
+        .utf_dashboard_navigation ul li.active:hover,
+        .utf_dashboard_navigation ul ul li,
+        .utf_dashboard_navigation ul ul li:hover,
+        .utf_dashboard_navigation ul ul li.active {
+            background:transparent!important;
+            background-color:transparent!important;
+            border:none!important;
+            border-left:none!important;
+            border-right:none!important;
+            border-bottom:none!important;
+            border-top:none!important;
+            border-color:transparent!important;
+            box-shadow:none!important;
+            outline:none!important;
+            color:inherit!important;
+        }
+
+        /* 3. Icon circles — the key fix:
+              stylesheet.css sets background + border-radius:50% + padding + height on ALL icon states.
+              We override every state here with the broadest selectors possible. */
+        .utf_dashboard_navigation ul li a i,
+        .utf_dashboard_navigation ul li a:hover i,
+        .utf_dashboard_navigation ul li:hover a i,
+        .utf_dashboard_navigation ul li.active a i,
+        .utf_dashboard_navigation ul li.active a:hover i,
+        .utf_dashboard_navigation ul li.active:hover a i {
+            background:none!important;
+            background-color:transparent!important;
+            border-radius:0!important;
+            -webkit-border-radius:0!important;
+            -moz-border-radius:0!important;
+            border:none!important;
+            box-shadow:none!important;
+            outline:none!important;
+            padding:0!important;
+            height:auto!important;
+            min-height:0!important;
+            width:18px!important;
+            min-width:18px!important;
+            line-height:1!important;
+            margin:0!important;
+            display:inline-block!important;
+            flex-shrink:0!important;
+            color:inherit!important;
+            transform:none!important;
+            position:static!important;
+            text-align:center!important;
+            vertical-align:middle!important;
+            font-size:.95rem!important;
+        }
+
+        /* 4. Pseudo-element chevrons (a:after) — kill entirely */
+        .utf_dashboard_navigation ul li a:after,
+        .utf_dashboard_navigation ul li a::after,
+        .utf_dashboard_navigation ul li a:before,
+        .utf_dashboard_navigation ul li a::before,
+        .utf_dashboard_navigation ul li:after,
+        .utf_dashboard_navigation ul li::after,
+        .utf_dashboard_navigation ul li:before,
+        .utf_dashboard_navigation ul li::before,
+        .utf_dashboard_navigation ul li.active a:after,
+        .utf_dashboard_navigation ul li.active a::after,
+        .utf_dashboard_navigation ul li.active a:before,
+        .utf_dashboard_navigation ul li.active a::before {
+            content:none!important;
+            display:none!important;
+            background:none!important;
+            border:none!important;
+            width:0!important;
+            height:0!important;
+            padding:0!important;
+            margin:0!important;
+            opacity:0!important;
+            position:static!important;
+        }
+
+        /* 5. Link base */
+        .utf_dashboard_navigation ul li a,
+        .utf_dashboard_navigation ul li a:link,
+        .utf_dashboard_navigation ul li a:visited {
+            display:flex!important;
+            align-items:center!important;
+            gap:11px!important;
+            padding:8px 12px!important;
+            border-radius:7px!important;
+            font-size:.855rem!important;
+            font-weight:500!important;
+            color:#3a3a3c!important;
+            text-decoration:none!important;
+            white-space:nowrap!important;
+            overflow:hidden!important;
+            background:transparent!important;
+            background-color:transparent!important;
+            border:none!important;
+            outline:none!important;
+            box-shadow:none!important;
+            transition:background .12s ease,color .12s ease!important;
+        }
+
+        /* 6. Hover link */
+        .utf_dashboard_navigation ul li a:hover {
+            background-color:rgba(0,0,0,0.045)!important;
+            background:rgba(0,0,0,0.045)!important;
+            color:#1d1d1f!important;
+            box-shadow:none!important;
+            outline:none!important;
+            border-radius:7px!important;
+        }
+
+        /* 7. Active link — soft brand fill */
+        .utf_dashboard_navigation ul li.active a,
+        .utf_dashboard_navigation ul li.active a:link,
+        .utf_dashboard_navigation ul li.active a:visited,
+        .utf_dashboard_navigation ul li.active a:hover,
+        .utf_dashboard_navigation ul li.active a:focus {
+            background-color:rgba(236,72,153,0.09)!important;
+            background:rgba(236,72,153,0.09)!important;
+            color:#ec4899!important;
+            font-weight:600!important;
+            box-shadow:none!important;
+            outline:none!important;
+            border-radius:7px!important;
+        }
+
+        /* 8. Logout danger link */
+        .utf_dashboard_navigation ul li a.sidebar-danger,
+        .utf_dashboard_navigation ul li a.sidebar-danger:link,
+        .utf_dashboard_navigation ul li a.sidebar-danger:visited { color:#e74c3c!important; }
+        .utf_dashboard_navigation ul li a.sidebar-danger:hover {
+            background-color:rgba(231,76,60,0.07)!important;
+            background:rgba(231,76,60,0.07)!important;
+            color:#c0392b!important;
+        }
+
+        /* 9. Restore icon opacity on active / hover rows */
+        .utf_dashboard_navigation ul li.active a i,
+        .utf_dashboard_navigation ul li.active a:hover i,
+        .utf_dashboard_navigation ul li:hover a i,
+        .utf_dashboard_navigation ul li a:hover i {
+            opacity : 1 !important;
+        }
+
+        /* 10. Focus rings — kill browser outlines inside dashboard */
+        #dashboard a:focus, #dashboard a:focus-visible,
+        #dashboard button:focus, #dashboard button:focus-visible,
+        #dashboard *:focus { outline:none!important; box-shadow:none!important; }
+
+        /* 11. Top-nav hover oval — stylesheet.css adds background on li.current / li:hover */
+        #navigation.style_one .current,
+        #navigation.style_one ul li:hover {
+            background:transparent!important;
+            background-color:transparent!important;
+            border-radius:0!important;
+        }
+        #navigation.style_one ul li:hover > a,
+        #navigation.style_one .current > a {
+            color:#ec4899!important;
+            background:transparent!important;
+        }
+    </style>
+</head>
+<body>
+
+<div id="main_wrapper">
+
+    <!-- ══ HEADER (white, same look as landing page) ══════════ -->
+    <header id="header_part" class="fixed fullwidth_block">
+
+        <div id="header" class="not-sticky">
+            <div class="container">
+
+                <!-- Left: Home + Hotels only, no logo -->
+                <div class="utf_left_side">
+                    <div class="mmenu-trigger">
+                        <button class="hamburger utfbutton_collapse" type="button">
+                            <span class="utf_inner_button_box">
+                                <span class="utf_inner_section"></span>
+                            </span>
+                        </button>
+                    </div>
+                    <nav id="navigation" class="style_one">
+                        <ul id="responsive">
+                            <li>
+                                <a href="{% url 'rooms:index' %}">
+                                    <i class="fas fa-home"></i> Home
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'rooms:hotel_listing' %}">
+                                    <i class="fas fa-building"></i> Hotels
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                    <div class="clearfix"></div>
+                </div>
+
+                <!-- Right: Bell + Account -->
+                <div class="utf_right_side">
+                    <div class="header_widget">
+
+                        <!-- Notification Bell -->
+                        <div class="dash-bell-wrap {% if unread_notifications %}has-noti{% endif %} js-item-menu">
+                            <i class="fas fa-bell"></i>
+                            <div class="dashboard_notifi_dropdown js-dropdown">
+                                <div class="dashboard_notifi_title">
+                                    <p>You have {{ unread_notifications|default:"0" }} notification(s)</p>
+                                </div>
+                                <div class="dashboard_notify_bottom text-center pad-tb-20">
+                                    <a href="{% url 'accounts:notifications' %}">View All Notifications</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Account dropdown (same design as landing page) -->
+                        <div class="rh-account-menu">
+                            <button class="rh-account-trigger" type="button">
+                                {% if user_profile and user_profile.image %}
+                                    <img src="{{ user_profile.image.url }}" alt="avatar"
+                                         style="width:22px;height:22px;border-radius:50%;object-fit:cover;margin-right:4px;">
+                                {% else %}
+                                    <i class="fas fa-user-circle"></i>
+                                {% endif %}
+                                {{ user.username|title }}
+                                <i class="fas fa-angle-down" style="font-size:.75rem;opacity:.7;"></i>
+                            </button>
+
+                            <div class="rh-account-dropdown">
+                                <div class="rh-acct-header">
+                                    {% if user_profile and user_profile.image %}
+                                        <img src="{{ user_profile.image.url }}" alt="avatar"
+                                             style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+                                    {% else %}
+                                        <span class="rh-acct-icon" style="width:38px;height:38px;font-size:1.1rem;">
+                                            <i class="fas fa-user"></i>
+                                        </span>
+                                    {% endif %}
+                                    <span>
+                                        <strong>{{ user.username|title }}</strong>
+                                        <small>{{ user.email }}</small>
+                                    </span>
+                                </div>
+                                <div class="rh-acct-divider"></div>
+                                <a href="{% url 'reports:dashboard' %}" class="rh-account-item">
+                                    <span class="rh-acct-icon"><i class="fas fa-tachometer-alt"></i></span>
+                                    <span><strong>Dashboard</strong><small>Overview &amp; stats</small></span>
+                                </a>
+                                <a href="{% url 'accounts:profile' %}" class="rh-account-item">
+                                    <span class="rh-acct-icon"><i class="fas fa-user"></i></span>
+                                    <span><strong>My Profile</strong><small>Edit your details</small></span>
+                                </a>
+                                <a href="{% url 'guests:my_reservations' %}" class="rh-account-item">
+                                    <span class="rh-acct-icon"><i class="fas fa-calendar-check"></i></span>
+                                    <span><strong>My Bookings</strong><small>View reservations</small></span>
+                                </a>
+                                <a href="{% url 'guests:wishlist' %}" class="rh-account-item">
+                                    <span class="rh-acct-icon"><i class="fas fa-heart"></i></span>
+                                    <span><strong>Wishlist</strong><small>Saved hotels</small></span>
+                                </a>
+                                <div class="rh-acct-divider"></div>
+                                <a href="{% url 'accounts:logout' %}" class="rh-account-item rh-account-item--danger">
+                                    <span class="rh-acct-icon rh-acct-icon--danger"><i class="fas fa-sign-out-alt"></i></span>
+                                    <span><strong>Sign Out</strong></span>
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </header>
+
+    <!-- SweetAlert messages -->
+    <script>
+    {% for message in messages %}
+        Swal.fire({
+            icon:'{% if message.tags == "error" %}error{% elif message.tags == "success" %}success{% elif message.tags == "warning" %}warning{% else %}info{% endif %}',
+            title:'{{ message|escapejs }}',
+            timer:2500, showConfirmButton:false, toast:true, position:'top-end'
+        });
+    {% endfor %}
+    </script>
+
+    {% block content %}{% endblock %}
+
+</div>
+
+{% load static %}
+<script src="{% static 'scripts/jquery-3_4_1_min.js' %}"></script>
+<script src="{% static 'scripts/chosen_min.js' %}"></script>
+<script src="{% static 'scripts/perfect-scrollbar_min.js' %}"></script>
+<script src="{% static 'scripts/slick_min.js' %}"></script>
+<script src="{% static 'scripts/rangeslider_min.js' %}"></script>
+<script src="{% static 'scripts/magnific-popup_min.js' %}"></script>
+<script src="{% static 'scripts/jquery-ui_min.js' %}"></script>
+<script src="{% static 'scripts/mmenu.js' %}"></script>
+<script src="{% static 'scripts/tooltips_min.js' %}"></script>
+<script src="{% static 'scripts/color_switcher.js' %}"></script>
+<script src="{% static 'scripts/jquery_custom.js' %}"></script>
+<script src="{% static 'scripts/red_hms_custom.js' %}"></script>
+{% block extra_js %}{% endblock %}
+
+<script>
+/* Account menu toggle */
+$(function () {
+    var $menu    = $('.rh-account-menu');
+    var $trigger = $menu.find('.rh-account-trigger');
+    $trigger.on('click', function (e) {
+        e.stopPropagation();
+        $menu.toggleClass('open');
+    });
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('.rh-account-menu').length) {
+            $menu.removeClass('open');
+        }
+    });
+    $(document).on('keydown', function (e) {
+        if (e.key === 'Escape') { $menu.removeClass('open'); }
+    });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block title %}Sign In – Red HMS{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { background: var(--bg); }
+  .auth-page {
+      min-height : calc(100vh - 68px);
+      display    : flex;
+      align-items: center;
+      justify-content: center;
+      padding    : 48px 16px 64px;
+  }
+  .auth-card {
+      width         : 100%;
+      max-width     : 440px;
+      background    : var(--surface);
+      border        : 1.5px solid var(--border);
+      border-radius : 20px;
+      box-shadow    : 0 8px 40px rgba(0,0,0,.11);
+      padding       : 44px 40px 40px;
+  }
+  .auth-logo {
+      width         : 54px;
+      height        : 54px;
+      background    : var(--brand-xlight);
+      border-radius : 16px;
+      display       : flex;
+      align-items   : center;
+      justify-content: center;
+      margin        : 0 auto 20px;
+  }
+  .auth-logo i { font-size: 1.5rem; color: var(--brand); }
+  .auth-card h2 {
+      text-align    : center;
+      font-size     : 1.55rem;
+      font-weight   : 800;
+      letter-spacing: -0.03em;
+      margin        : 0 0 6px;
+      color         : var(--t1);
+  }
+  .auth-card .auth-sub {
+      text-align: center;
+      color     : var(--t2);
+      font-size : .9rem;
+      margin    : 0 0 28px;
+  }
+  .auth-card label {
+      font-size : .77rem !important;
+      font-weight: 600 !important;
+      color     : var(--t2) !important;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      margin-bottom: 6px !important;
+  }
+  .auth-card input[type="email"],
+  .auth-card input[type="password"] {
+      border-radius: 10px !important;
+      padding      : 12px 14px !important;
+      font-size    : .93rem !important;
+      background   : var(--surface) !important;
+      border       : 1.5px solid var(--border-med) !important;
+      box-shadow   : 0 1px 3px rgba(0,0,0,0.05) !important;
+      margin-bottom: 14px !important;
+  }
+  .auth-card input:focus {
+      border-color: var(--brand) !important;
+      box-shadow  : 0 0 0 4px rgba(0,0,0,.10) !important;
+  }
+  .auth-card .auth-submit {
+      width         : 100%;
+      padding       : 13px !important;
+      font-size     : .95rem !important;
+      font-weight   : 700 !important;
+      border-radius : 10px !important;
+      margin-top    : 6px;
+      letter-spacing: -0.01em;
+  }
+  .auth-forgot { text-align:right; margin-top:-8px; margin-bottom:16px; }
+  .auth-forgot a { font-size:.82rem; color: var(--t2); font-weight:600; }
+  .auth-forgot a:hover { color: var(--brand); }
+  .auth-divider {
+      display   : flex;
+      align-items: center;
+      gap       : 12px;
+      margin    : 22px 0;
+      color     : var(--t3);
+      font-size : .82rem;
+  }
+  .auth-divider::before,
+  .auth-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+  .auth-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size : .88rem;
+      color     : var(--t2);
+  }
+  .auth-footer a { color: var(--brand); font-weight: 700; }
+  @media (max-width:480px) {
+      .auth-card { padding: 32px 22px 28px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <i class="fas fa-hotel"></i>
+    </div>
+
+    <h2>Welcome back</h2>
+    <p class="auth-sub">Sign in to your Red HMS account</p>
+
+    <form method="POST" autocomplete="on">
+      {% csrf_token %}
+
+      <label>Email or Username</label>
+      <input type="text" name="email" placeholder="you@example.com or your username"
+             autocomplete="username" required>
+
+      <label>Password</label>
+      <input type="password" name="password" placeholder="••••••••"
+             autocomplete="current-password" required>
+      <p style="font-size:.78rem;color:#aaa;margin-top:4px;">
+        <i class="fas fa-shield-alt"></i> Account locks after 5 failed attempts.</p>
+
+      <div class="auth-forgot">
+        <a href="{% url 'accounts:password_reset' %}">Forgot password?</a>
+      </div>
+
+      <input type="submit" class="button auth-submit" value="Sign In">
+    </form>
+
+    <div class="auth-divider">or</div>
+
+    <div class="auth-footer">
+      Don't have an account?
+      <a href="{% url 'accounts:register' %}">Create one free</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

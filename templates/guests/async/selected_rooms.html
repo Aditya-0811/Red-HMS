@@ -1,0 +1,36 @@
+{% load static %}
+{% if data %}
+<div class="utf_booking_listing_section_form margin-bottom-35">
+    <h3><i class="fas fa-bed"></i> Selected Rooms ({{ total_selected_items }})</h3>
+    <div class="utf_listing_section">
+        <div class="utf_pricing_list_section">
+            <ul>
+                {% for id, item in data.items %}
+                <li>
+                    <h5>
+                        {{ item.room_name }}
+                        <small>
+                            <a style="cursor:pointer;" class="delete-item" data-item="{{ id }}">
+                                <i class="fas fa-trash" style="color:#e74c3c;"></i>
+                            </a>
+                        </small>
+                    </h5>
+                    <p><strong>Beds:</strong> {{ item.number_of_beds }}</p>
+                    <p>
+                        <i class="fa fa-calendar-check-o"></i>
+                        {{ item.checkin }} → {{ item.checkout }}
+                        | <i class="fa fa-users"></i> {{ item.adult }} Adult(s), {{ item.children }} Child(ren)
+                    </p>
+                    <span>${{ item.room_price }}/night</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% else %}
+<div style="text-align:center;padding:40px 0;color:#aaa;">
+    <i class="fa fa-shopping-cart fa-3x" style="display:block;margin-bottom:15px;color:#ddd;"></i>
+    <h5>Your selection is empty</h5>
+</div>
+{% endif %}

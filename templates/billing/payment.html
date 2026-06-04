@@ -1,0 +1,482 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block title %}Checkout – Red HMS{% endblock %}
+
+{% block content %}
+
+<div id="titlebar">
+    <div class="container"><div class="row"><div class="col-md-12">
+        <h2>Checkout</h2>
+        <nav id="breadcrumbs"><ul>
+            <li><a href="{% url 'rooms:index' %}">Home</a></li>
+            <li><a href="{% url 'guests:selected_rooms' %}">Selection</a></li>
+            <li>Checkout</li>
+        </ul></nav>
+    </div></div></div>
+</div>
+
+<div class="container margin-bottom-75">
+    <div class="row">
+
+        <!-- ── LEFT: Payment section ── -->
+        <div class="col-lg-8 col-md-8 utf_listing_payment_section">
+
+            <!-- NOTE -->
+            <div class="notification warning closeable margin-bottom-20">
+                <p><span>NOTE!</span> Review your booking details before making payment.</p>
+                <a class="close" href="#"></a>
+            </div>
+
+            <!-- Selected rooms summary -->
+            <div class="utf_booking_listing_section_form margin-bottom-35">
+                <h3><i class="fas fa-bed"></i> Booked Rooms</h3>
+                <div class="utf_listing_section">
+                    <div class="utf_pricing_list_section">
+                        <ul>
+                            {% for r in rooms %}
+                            <li>
+                                <h5>Room {{ r.room_number }} — {{ r.room_type.type }}</h5>
+                                <p>
+                                    <i class="fa fa-bed"></i> {{ r.number_of_beds }} Bed(s)
+                                    &nbsp;|&nbsp;
+                                    <i class="fa fa-calendar"></i>
+                                    {{ reservation.check_in_date }} → {{ reservation.check_out_date }}
+                                    ({{ reservation.total_days }} night(s))
+                                </p>
+                                <span>${{ r.room_type.price }}/night</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coupon Code -->
+            <div class="utf_booking_listing_section_form margin-bottom-35">
+                <h3><i class="fa fa-tag"></i> Coupon Code</h3>
+                <p style="color:#888;font-size:.9rem;margin-bottom:15px;">
+                    Have a coupon? Enter it below to get a discount.
+                </p>
+                <details style="margin-bottom:12px;cursor:pointer;">
+                    <summary style="font-size:.85rem;color:#888;list-style:none;">
+                        💡 Have a coupon? Click to enter it</summary>
+                    <p style="font-size:.8rem;color:#aaa;margin-top:6px;">
+                        Codes are case-insensitive. One coupon per booking.</p>
+                </details>
+                <form method="POST" action="{% url 'billing:checkout_page' reservation.booking_id %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-8">
+                            <input type="text" name="code" class="with-border"
+                                   placeholder="Enter coupon code e.g. SAVE10"
+                                   style="text-transform:uppercase;">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="button fullwidth_block">
+                                <i class="fa fa-check"></i> Apply Coupon
+                            </button>
+                        </div>
+                    </div>
+                    {% if reservation.saved %}
+                    <div class="notification success margin-top-15" style="padding:10px 15px;">
+                        <p>✅ Coupon applied! You saved <strong>${{ reservation.saved|floatformat:2 }}</strong></p>
+                    </div>
+                    {% endif %}
+                </form>
+                {% if reservation.coupons.all %}
+                <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;
+                            padding:15px;margin-top:15px;">
+                    <p style="font-weight:700;color:#166534;">
+                        <i class="fas fa-check-circle"></i> Applied Coupons</p>
+                    {% for coupon in reservation.coupons.all %}
+                    <div style="display:flex;justify-content:space-between;padding:6px 0;
+                                border-bottom:1px dashed #d1fae5;">
+                        <span><code>{{ coupon.code }}</code> —
+                            {% if coupon.discount_type == 'Percentage' %}{{ coupon.discount }}% off
+                            {% else %}${{ coupon.discount }} off{% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                    <p style="margin-top:10px;font-weight:700;color:#166634;">
+                        You saved: <strong>${{ reservation.saved }}</strong></p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="utf_booking_listing_section_form margin-bottom-35">
+                <h3><i class="sl sl-icon-credit-card"></i> Payment Method</h3>
+                <div class="payment">
+
+                    <!-- ── DEMO CARD TAB (default) ── -->
+                    <div class="utf_payment_tab_block" style="border:2px solid var(--brand);border-radius:8px;margin-bottom:10px;">
+                        <div class="utf_payment_trigger_tab">
+                            <input checked id="demo_card" name="cardType" type="radio" value="demo">
+                            <label for="demo_card" style="font-weight:700;">
+                                <i class="fas fa-credit-card" style="color:var(--brand);margin-right:5px;"></i>
+                                Pay with Card
+                            </label>
+                            <span style="margin-left:10px;font-size:20px;">
+                                <i class="fab fa-cc-visa" style="color:#1a1f71"></i>
+                                <i class="fab fa-cc-mastercard" style="color:#eb001b;margin-left:5px"></i>
+                                <i class="fab fa-cc-amex" style="color:#007bc1;margin-left:5px"></i>
+                            </span>
+                            <span style="margin-left:8px;background:#27ae60;color:#fff;font-size:.7rem;
+                                         padding:2px 8px;border-radius:12px;font-weight:700;letter-spacing:.05em;">
+                                RECOMMENDED
+                            </span>
+                        </div>
+                        <div class="utf_payment_tab_block_content" id="demo-card-section">
+                            <form method="POST" action="{% url 'billing:demo_payment' reservation.booking_id %}"
+                                  id="demo-payment-form">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label>Card Holder Name</label>
+                                        <input type="text" name="card_name" required
+                                               placeholder="Full name on card"
+                                               value="{{ reservation.full_name }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label>Card Number</label>
+                                        <input type="text" name="card_number" id="demo-card-number"
+                                               required maxlength="19"
+                                               placeholder="1234 5678 9012 3456"
+                                               autocomplete="cc-number"
+                                               style="letter-spacing:.08em;font-family:monospace;font-size:1rem;">
+                                    </div>
+                                    <div class="col-md-4 margin-top-15">
+                                        <label>Expiry Date</label>
+                                        <input type="text" name="expiry" required
+                                               placeholder="MM / YY" maxlength="7">
+                                    </div>
+                                    <div class="col-md-4 margin-top-15">
+                                        <label>CVV</label>
+                                        <input type="text" name="cvv" required
+                                               placeholder="123" maxlength="4"
+                                               style="font-family:monospace;">
+                                    </div>
+                                    <div class="col-md-4 margin-top-15">
+                                        <label>Billing Zip</label>
+                                        <input type="text" name="zip_code"
+                                               placeholder="Optional">
+                                    </div>
+                                </div>
+                                <div class="notification success" style="padding:10px 15px;margin-top:15px;">
+                                    <p>
+                                        <i class="fas fa-info-circle"></i>
+                                        <strong>Test cards:</strong>
+                                        <code>4242 4242 4242 4242</code> → Success &nbsp;|&nbsp;
+                                        <code>4000 0000 0000 0002</code> → Declined
+                                        &nbsp;|&nbsp; Any future expiry &amp; any CVV
+                                    </p>
+                                </div>
+                                <button type="submit" id="demo-pay-btn"
+                                        class="button utf_booking_confirmation_button margin-top-20"
+                                        style="width:100%;font-size:1rem;padding:14px;">
+                                    <i class="fas fa-lock"></i>
+                                    Pay ${{ reservation.total|floatformat:2 }} Now
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- ── STRIPE PAYMENT ELEMENT TAB ── -->
+                    <div class="utf_payment_tab_block">
+                        <div class="utf_payment_trigger_tab">
+                            <input id="stripe" name="cardType" type="radio" value="stripe">
+                            <label for="stripe" style="font-weight:700;">
+                                <i class="fab fa-stripe" style="color:#6772e5;margin-right:4px;"></i>
+                                Pay with Stripe
+                            </label>
+                            <span style="margin-left:10px;font-size:20px;">
+                                <i class="fab fa-cc-visa" style="color:#1a1f71"></i>
+                                <i class="fab fa-cc-mastercard" style="color:#eb001b;margin-left:5px"></i>
+                                <i class="fab fa-cc-amex" style="color:#007bc1;margin-left:5px"></i>
+                            </span>
+                        </div>
+                        <div class="utf_payment_tab_block_content" id="stripe-section" style="display:none;">
+                            <div class="notification success" style="padding:10px 15px;margin-bottom:14px;">
+                                <p>
+                                    <i class="fas fa-shield-alt"></i>
+                                    <strong>Test mode</strong> — card <code>4242 4242 4242 4242</code>
+                                    &nbsp;|&nbsp; Any future date &nbsp;|&nbsp; Any 3-digit CVC
+                                    &nbsp;|&nbsp; Any zip
+                                </p>
+                            </div>
+                            <div id="stripe-loading" style="text-align:center;padding:20px 0;color:#888;font-size:.9rem;">
+                                <i class="fa fa-spinner fa-spin"></i> Loading secure payment form…
+                            </div>
+                            <div id="payment-element" style="margin-bottom:16px;min-height:0;"></div>
+                            <div id="stripe-error-msg"
+                                 style="display:none;background:#fef2f2;color:#991b1b;
+                                        padding:10px 14px;border-radius:6px;
+                                        margin-bottom:12px;font-size:.88rem;"></div>
+                            <button id="stripe-pay-btn"
+                                    class="button utf_booking_confirmation_button"
+                                    style="width:100%;font-size:1rem;padding:14px;display:none;">
+                                <i class="fas fa-lock"></i>
+                                Pay ${{ reservation.total|floatformat:2 }} with Stripe
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ── PAYPAL TAB ── -->
+                    <div class="utf_payment_tab_block margin-top-20">
+                        <div class="utf_payment_trigger_tab">
+                            <input id="paypal" name="cardType" type="radio" value="paypal">
+                            <label for="paypal">Pay with PayPal</label>
+                            <span style="margin-left:10px;font-size:22px;">
+                                <i class="fab fa-paypal" style="color:#003087"></i>
+                                <span style="font-family:'Nunito',sans-serif;font-weight:900;
+                                             color:#003087;font-size:16px;margin-left:3px;">Pay</span>
+                                <span style="font-family:'Nunito',sans-serif;font-weight:900;
+                                             color:#009cde;font-size:16px;">Pal</span>
+                            </span>
+                        </div>
+                        <div class="utf_payment_tab_block_content" style="display:none;" id="paypal-section">
+                            <p style="color:#888;font-size:.9rem;margin-bottom:15px;">
+                                You will be redirected to PayPal to complete your payment securely.
+                            </p>
+                            <!-- PayPal smart button renders here -->
+                            <div id="paypal-button-container"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Security note -->
+            <div style="text-align:center;color:#aaa;font-size:.82rem;padding:10px 0;">
+                <i class="fas fa-lock"></i> 256-bit SSL encryption &nbsp;|&nbsp;
+                <i class="fas fa-shield-alt"></i> Secure payments via Stripe &amp; PayPal &nbsp;|&nbsp;
+                We never store your card details.
+            </div>
+        </div>
+
+        <!-- ── RIGHT: Order summary ── -->
+        <div class="col-lg-4 col-md-4 margin-top-0 utf_listing_payment_section">
+
+            <!-- Hotel preview card -->
+            <div class="utf_booking_listing_item_container compact utf_order_summary_widget_section margin-bottom-20">
+                <div class="listing-item">
+                    {% if reservation.hotel.image %}
+                    <img src="{{ reservation.hotel.image.url }}"
+                         alt="{{ reservation.hotel.name }}"
+                         style="width:100%;height:160px;object-fit:cover;">
+                    {% else %}
+                    <div style="height:160px;background:linear-gradient(135deg,#000000,#1a1a1a);
+                                display:flex;align-items:center;justify-content:center;font-size:40px;">
+                        🏨
+                    </div>
+                    {% endif %}
+                    <div class="utf_listing_item_content">
+                        <h3>{{ reservation.hotel.name }}</h3>
+                        <span><i class="fa fa-map-marker"></i> {{ reservation.hotel.address }}</span>
+                        <span><i class="fa fa-phone"></i> {{ reservation.hotel.mobile }}</span>
+                        <div class="utf_star_rating_section" data-rating="5">
+                            <div class="utf_counter_star_rating">5 Star Hotel</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking summary -->
+            <div class="boxed-widget opening-hours summary">
+                <h3><i class="fa fa-calendar-check-o"></i> Booking Summary</h3>
+                <ul>
+                    <li>Booking ID <span><code>#{{ reservation.booking_id }}</code></span></li>
+                    <li>Guest <span>{{ reservation.full_name }}</span></li>
+                    <li>Check-In <span>{{ reservation.check_in_date }}</span></li>
+                    <li>Check-Out <span>{{ reservation.check_out_date }}</span></li>
+                    <li>Nights <span>{{ reservation.total_days }}</span></li>
+                    <li>Adults <span>{{ reservation.num_adults }}</span></li>
+                    <li>Children <span>{{ reservation.num_children }}</span></li>
+                    <li>Rooms <span>{{ reservation.room.count }}</span></li>
+                    {% if reservation.saved %}
+                    <li>Before Discount <span>${{ reservation.before_discount|floatformat:2 }}</span></li>
+                    <li style="color:#27ae60;">
+                        Discount Saved
+                        <span style="color:#27ae60;">-${{ reservation.saved|floatformat:2 }}</span>
+                    </li>
+                    {% endif %}
+                    {% if reservation.saved > 0 %}
+                    <li>
+                        <div style="color:#166534;font-size:.9rem;">
+                            <i class="fas fa-tag"></i> Discount applied: -${{ reservation.saved }}
+                        </div>
+                    </li>
+                    {% endif %}
+                    <li class="total-costs">
+                        Total
+                        <span style="color:#1a1a1a;font-weight:800;font-size:1.1rem;">
+                            ${{ reservation.total|floatformat:2 }}
+                        </span>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Stripe.js v3 -->
+<script src="https://js.stripe.com/v3/"></script>
+
+<!-- PayPal SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD"></script>
+
+<script>
+const STRIPE_PUBLIC_KEY = '{{ stripe_publishable_key }}';
+const BOOKING_ID        = '{{ reservation.booking_id }}';
+const BOOKING_TOTAL     = '{{ reservation.total }}';
+const SUCCESS_ID        = '{{ reservation.success_id }}';
+const CSRF_TOKEN        = '{{ csrf_token }}';
+
+// ══ STRIPE PAYMENT ELEMENT ══════════════════════════════════
+var stripeObj     = Stripe(STRIPE_PUBLIC_KEY);
+var stripeElements, paymentElement;
+var stripeInited  = false;
+
+function initStripeElements() {
+    if (stripeInited) return;
+    stripeInited = true;
+
+    fetch("{% url 'billing:stripe_payment_intent' reservation.booking_id %}", {
+        method: 'POST',
+        headers: { 'X-CSRFToken': CSRF_TOKEN, 'Content-Type': 'application/json' },
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        document.getElementById('stripe-loading').style.display = 'none';
+        if (data.error) {
+            document.getElementById('stripe-error-msg').textContent = data.error;
+            document.getElementById('stripe-error-msg').style.display = 'block';
+            return;
+        }
+        var appearance = {
+            theme: 'stripe',
+            variables: { colorPrimary: '#ec4899', borderRadius: '8px' },
+        };
+        stripeElements = stripeObj.elements({ clientSecret: data.clientSecret, appearance: appearance });
+        paymentElement = stripeElements.create('payment', { layout: 'tabs' });
+        paymentElement.mount('#payment-element');
+        paymentElement.on('ready', function() {
+            document.getElementById('stripe-pay-btn').style.display = 'block';
+        });
+    })
+    .catch(function(err) {
+        document.getElementById('stripe-loading').style.display = 'none';
+        document.getElementById('stripe-error-msg').textContent = 'Could not load payment form. Please refresh.';
+        document.getElementById('stripe-error-msg').style.display = 'block';
+    });
+}
+
+var stripePayBtn = document.getElementById('stripe-pay-btn');
+stripePayBtn.addEventListener('click', async function() {
+    if (!stripeElements) return;
+    stripePayBtn.disabled = true;
+    stripePayBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing…';
+    document.getElementById('stripe-error-msg').style.display = 'none';
+
+    var returnUrl = window.location.origin + "{% url 'billing:stripe_return' reservation.booking_id %}";
+    var result = await stripeObj.confirmPayment({
+        elements: stripeElements,
+        confirmParams: { return_url: returnUrl },
+    });
+
+    if (result.error) {
+        document.getElementById('stripe-error-msg').textContent = result.error.message;
+        document.getElementById('stripe-error-msg').style.display = 'block';
+        stripePayBtn.disabled = false;
+        stripePayBtn.innerHTML = '<i class="fas fa-lock"></i> Pay ${{ reservation.total|floatformat:2 }} with Stripe';
+    }
+});
+
+// ── Payment tab show/hide ──────────────────────────────────
+document.getElementById('demo_card').addEventListener('change', function() {
+    document.getElementById('demo-card-section').style.display = 'block';
+    document.getElementById('stripe-section').style.display    = 'none';
+    document.getElementById('paypal-section').style.display    = 'none';
+});
+document.getElementById('stripe').addEventListener('change', function() {
+    document.getElementById('demo-card-section').style.display = 'none';
+    document.getElementById('stripe-section').style.display    = 'block';
+    document.getElementById('paypal-section').style.display    = 'none';
+    initStripeElements();
+});
+document.getElementById('paypal').addEventListener('change', function() {
+    document.getElementById('demo-card-section').style.display = 'none';
+    document.getElementById('stripe-section').style.display    = 'none';
+    document.getElementById('paypal-section').style.display    = 'block';
+});
+
+// ══ PAYPAL ════════════════════════════════════════════════
+try {
+    paypal.Buttons({
+        createOrder: function(data, actions) {
+            return actions.order.create({
+                purchase_units: [{
+                    amount: { value: BOOKING_TOTAL, currency_code: 'USD' },
+                    description: 'Booking #' + BOOKING_ID + ' — Red HMS',
+                }]
+            });
+        },
+        onApprove: function(data, actions) {
+            return actions.order.capture().then(function() {
+                window.location.href = (
+                    '/billing/paypal/success/' + BOOKING_ID + '/' +
+                    '?PayerID=' + data.payerID +
+                    '&success_id=' + SUCCESS_ID +
+                    '&booking_total=' + BOOKING_TOTAL + '/'
+                );
+            });
+        },
+        onError: function(err) {
+            Swal.fire({ icon:'error', title:'PayPal Error', text:'Payment could not be completed. Please try another method.' });
+        },
+        onCancel: function() {
+            Swal.fire({ icon:'info', title:'Cancelled', text:'PayPal payment cancelled.', timer:2500, showConfirmButton:false });
+        },
+        style: { layout:'vertical', color:'blue', shape:'rect', label:'paypal' },
+    }).render('#paypal-button-container');
+} catch(e) {
+    console.warn('PayPal SDK unavailable:', e);
+    document.getElementById('paypal-button-container').innerHTML =
+        '<p style="color:#aaa;font-size:.85rem;padding:10px 0;">' +
+        '<i class="fa fa-exclamation-circle"></i> PayPal is currently unavailable. Please use the card payment above.</p>';
+}
+
+// ── Coupon uppercase ───────────────────────────────────────
+var couponInput = document.querySelector('input[name="code"]');
+if (couponInput) couponInput.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
+
+// ── Demo card formatting ───────────────────────────────────
+var demoCardInput = document.getElementById('demo-card-number');
+if (demoCardInput) {
+    demoCardInput.addEventListener('input', function() {
+        var val = this.value.replace(/\D/g,'').substring(0,16);
+        this.value = val.replace(/(.{4})/g,'$1 ').trim();
+    });
+}
+var expiryInput = document.querySelector('input[name="expiry"]');
+if (expiryInput) {
+    expiryInput.addEventListener('input', function() {
+        var val = this.value.replace(/\D/g,'').substring(0,4);
+        if (val.length >= 3) val = val.substring(0,2) + ' / ' + val.substring(2);
+        this.value = val;
+    });
+}
+var demoForm = document.getElementById('demo-payment-form');
+var demoBtn  = document.getElementById('demo-pay-btn');
+if (demoForm) {
+    demoForm.addEventListener('submit', function() {
+        demoBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing payment…';
+        demoBtn.disabled  = true;
+    });
+}
+</script>
+{% endblock %}

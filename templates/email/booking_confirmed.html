@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body{font-family:'Open Sans',Arial,sans-serif;background:#f4f4f4;margin:0;padding:0;}
+.wrap{max-width:600px;margin:30px auto;background:#fff;border-radius:6px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.1);}
+.hdr{background:#1a1a1a;color:#fff;padding:28px 30px;text-align:center;}
+.hdr h1{margin:0;font-size:26px;letter-spacing:1px;}
+.body{padding:30px;}
+.row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:.9rem;}
+.row span:first-child{color:#888;}
+.row span:last-child{font-weight:600;}
+.total{display:flex;justify-content:space-between;padding:14px 0;font-size:1.05rem;font-weight:700;color:#1a1a1a;}
+.ftr{background:#000000;color:#fff;text-align:center;padding:18px;font-size:.8rem;opacity:.9;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <h1>🏨 Red HMS</h1>
+    <p style="margin:5px 0 0;opacity:.85;">Booking Confirmation</p>
+  </div>
+  <div class="body">
+    <p>Dear <strong>{{ full_name }}</strong>,</p>
+    <p>Your booking at <strong>{{ reservation.hotel.name }}</strong> is confirmed! 🎉</p>
+    <div class="row"><span>Booking ID</span><span>#{{ reservation.booking_id }}</span></div>
+    <div class="row"><span>Hotel</span><span>{{ reservation.hotel.name }}</span></div>
+    <div class="row"><span>Room Type</span><span>{{ reservation.room_type.type }}</span></div>
+    <div class="row"><span>Check-In</span><span>{{ reservation.check_in_date }}</span></div>
+    <div class="row"><span>Check-Out</span><span>{{ reservation.check_out_date }}</span></div>
+    <div class="row"><span>Nights</span><span>{{ reservation.total_days }}</span></div>
+    <div class="row"><span>Adults</span><span>{{ reservation.num_adults }}</span></div>
+    <div class="row"><span>Children</span><span>{{ reservation.num_children }}</span></div>
+    <div class="total"><span>Total Paid</span><span>${{ reservation.total }}</span></div>
+    <p style="margin-top:20px;color:#888;font-size:.9rem;">We look forward to welcoming you. If you have any questions, please contact us at support@redhms.com</p>
+    <p>– The Red HMS Team</p>
+  </div>
+  <div class="ftr">Red HMS &copy; {% now "Y" %} &nbsp;|&nbsp; support@redhms.com</div>
+</div>
+</body>
+</html>

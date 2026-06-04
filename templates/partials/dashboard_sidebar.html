@@ -1,0 +1,111 @@
+<div class="utf_dashboard_navigation">
+    <ul>
+
+        <!-- ── Dashboard (all roles) ── -->
+        <li {% if '/reports/dashboard/' in request.path %}class="active"{% endif %}>
+            <a href="{% url 'reports:dashboard' %}">
+                <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
+            </a>
+        </li>
+
+        {% if user.role == 'Admin' or user.role == 'Manager' %}
+        <!-- ── Admin / Manager: full access ── -->
+        <li {% if '/reports/bookings/' in request.path %}class="active"{% endif %}>
+            <a href="{% url 'reports:all_bookings' %}">
+                <i class="fas fa-calendar-check"></i> <span>All Bookings</span>
+            </a>
+        </li>
+        <li {% if 'revenue' in request.path %}class="active"{% endif %}>
+            <a href="{% url 'reports:revenue_report' %}">
+                <i class="fas fa-chart-line"></i> <span>Revenue</span>
+            </a>
+        </li>
+        <li {% if 'occupancy' in request.path %}class="active"{% endif %}>
+            <a href="{% url 'reports:occupancy_report' %}">
+                <i class="fas fa-building"></i> <span>Occupancy</span>
+            </a>
+        </li>
+        <li {% if 'generate' in request.path %}class="active"{% endif %}>
+            <a href="{% url 'reports:generate_report' %}">
+                <i class="fas fa-file-alt"></i> <span>Reports</span>
+            </a>
+        </li>
+
+        {% elif user.role == 'Receptionist' %}
+        <!-- ── Receptionist: bookings + basic access ── -->
+        <li {% if '/reports/bookings/' in request.path %}class="active"{% endif %}>
+            <a href="{% url 'reports:all_bookings' %}">
+                <i class="fas fa-calendar-check"></i> <span>All Bookings</span>
+            </a>
+        </li>
+
+        {% elif user.role == 'Housekeeping' %}
+        <!-- ── Housekeeping: occupancy view ── -->
+        <li {% if 'occupancy' in request.path %}class="active"{% endif %}>
+            <a href="{% url 'reports:occupancy_report' %}">
+                <i class="fas fa-building"></i> <span>Occupancy</span>
+            </a>
+        </li>
+
+        {% else %}
+        <!-- ── Guest: personal bookings + wishlist + wallet ── -->
+        <li {% if 'my-reservations' in request.path %}class="active"{% endif %}>
+            <a href="{% url 'guests:my_reservations' %}">
+                <i class="fas fa-calendar-check"></i> <span>My Bookings</span>
+            </a>
+        </li>
+        <li {% if 'wishlist' in request.path %}class="active"{% endif %}>
+            <a href="{% url 'guests:wishlist' %}">
+                <i class="fas fa-heart"></i> <span>Wishlist</span>
+            </a>
+        </li>
+        <li {% if 'wallet' in request.path %}class="active"{% endif %}>
+            <a href="{% url 'reports:wallet' %}">
+                <i class="fas fa-wallet"></i> <span>Wallet</span>
+            </a>
+        </li>
+        {% endif %}
+
+        <!-- ── Notifications (all roles) ── -->
+        <li {% if 'notifications' in request.path %}class="active"{% endif %}>
+            <a href="{% url 'accounts:notifications' %}">
+                <i class="fas fa-bell"></i> <span>Notifications</span>
+                {% if unread_notifications %}<em class="dash-badge">{{ unread_notifications }}</em>{% endif %}
+            </a>
+        </li>
+
+        <!-- ── Profile + Password (all roles) ── -->
+        <li {% if 'profile' in request.path and 'accounts' in request.path %}class="active"{% endif %}>
+            <a href="{% url 'accounts:profile' %}">
+                <i class="fas fa-user"></i> <span>My Profile</span>
+            </a>
+        </li>
+        <li {% if 'change-password' in request.path %}class="active"{% endif %}>
+            <a href="{% url 'accounts:change_password' %}">
+                <i class="fas fa-lock"></i> <span>Password</span>
+            </a>
+        </li>
+
+        {% if user.role == 'Admin' %}
+        <!-- ── Admin-only: Django admin panel ── -->
+        <li>
+            <a href="/admin/" target="_blank">
+                <i class="fas fa-cog"></i> <span>Admin Panel</span>
+            </a>
+        </li>
+        {% endif %}
+
+        <!-- ── View Site + Logout (all roles) ── -->
+        <li>
+            <a href="{% url 'rooms:index' %}">
+                <i class="fas fa-home"></i> <span>View Site</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'accounts:logout' %}" class="sidebar-danger">
+                <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+            </a>
+        </li>
+
+    </ul>
+</div>

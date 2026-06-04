@@ -1,0 +1,482 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block title %}{{ hotel.name }} – Red HMS{% endblock %}
+
+{% block content %}
+<div id="rh-hotel-data"
+     data-slug="{{ hotel.slug }}"
+     data-name="{{ hotel.name }}"
+     data-city="{{ hotel.city|default:'' }}"
+     data-price="{% with rts=hotel.hotel_room_types %}{% if rts.exists %}{{ rts.first.price }}{% endif %}{% endwith %}"
+     data-img="{% if hotel.image %}{{ hotel.image.url }}{% endif %}"
+     style="display:none;"></div>
+<div class="clearfix"></div>
+
+<!-- Gallery Slider -->
+<div id="utf_listing_gallery_part" class="utf_listing_section">
+    <div class="utf_listing_slider utf_gallery_container margin-bottom-0">
+        {% if hotel.image %}
+            <a href="{{ hotel.image.url }}" data-background-image="{{ hotel.image.url }}"
+               class="item utf_gallery" style="background-image:url('{{ hotel.image.url }}');min-height:420px;background-size:cover;background-position:center;"></a>
+        {% endif %}
+        {% for img in hotel.gallery.all %}
+            <a href="{{ img.image.url }}" data-background-image="{{ img.image.url }}"
+               class="item utf_gallery"></a>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Hidden photo strip for lightbox (U11) -->
+<div class="rh-photo-strip" style="display:flex;flex-wrap:wrap;gap:8px;padding:0 0 20px;max-width:100%;overflow:hidden;">
+    {% if hotel.image %}
+    <img class="rh-hotel-photo" src="{{ hotel.image.url }}" alt="{{ hotel.name }}"
+         style="width:120px;height:80px;object-fit:cover;border-radius:6px;cursor:pointer;flex-shrink:0;">
+    {% endif %}
+    {% for img in hotel.gallery.all %}
+    <img class="rh-hotel-photo" src="{{ img.image.url }}" alt="{{ hotel.name }}"
+         style="width:120px;height:80px;object-fit:cover;border-radius:6px;cursor:pointer;flex-shrink:0;">
+    {% endfor %}
+</div>
+
+<div class="container">
+    <div class="rh-detail-layout">
+
+        <!-- LEFT: Main Content -->
+        <div class="rh-detail-main">
+
+            <!-- Title Bar -->
+            <div id="titlebar" class="utf_listing_titlebar">
+                <div class="utf_listing_titlebar_title">
+                    <h2>{{ hotel.name }}</h2>
+                    <span>
+                        <a href="#" class="listing-address">
+                            <i class="fas fa-location-arrow"></i> {{ hotel.address }}
+                        </a>
+                    </span>
+                    <span class="call_now"><i class="fas fa-phone"></i> {{ hotel.mobile }}</span>
+                    <div class="utf_star_rating_section" data-rating="{{ hotel.average_rating }}">
+                        {% if hotel.average_rating %}
+                            <div class="utf_counter_star_rating">{{ hotel.average_rating }}/5 ({{ all_reviews.count }} Reviews)</div>
+                        {% else %}
+                            <div class="utf_counter_star_rating">No Reviews Yet</div>
+                        {% endif %}
+                    </div>
+                    <ul class="listing_item_social">
+                        {% if user.is_authenticated %}
+                        <li>
+                            <a href="{% url 'guests:toggle_bookmark' hotel.slug %}" title="Save to wishlist">
+                                <i class="fa fa-heart" style="color:{% if bookmark %}#1a1a1a{% else %}#aaa{% endif %};"></i>
+                                {% if bookmark %}Saved{% else %}Save{% endif %}
+                            </a>
+                        </li>
+                        {% if not user_review %}
+                        <li>
+                            <a href="#small-dialog" class="popup-with-zoom-anim" id="add-review-button">
+                                <i class="fa fa-star"></i> Add Review
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% else %}
+                        <li>
+                            <a href="{% url 'accounts:login' %}?next={{ request.path }}">
+                                <i class="fa fa-sign-in"></i> Login to Review
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li>
+                            <a href="#" id="clipboard" style="cursor:pointer;">
+                                <i class="fa fa-share"></i> Share
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="utf_listing_section margin-top-30">
+                <h3 class="utf_listing_headline_part margin-bottom-20">
+                    <i class="sl sl-icon-doc"></i> Description
+                </h3>
+                <div class="utf_listing_section_content">
+                    {% if hotel.description %}
+                        {{ hotel.description|safe }}
+                    {% else %}
+                        <p>No description available.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Amenities / Features -->
+            {% if hotel.features.all %}
+            <div class="utf_listing_section margin-top-40">
+                <h3 class="utf_listing_headline_part margin-bottom-25">
+                    <i class="sl sl-icon-star"></i> Amenities &amp; Features
+                </h3>
+                <ul class="utf_listing_features checkboxes margin-top-0">
+                    {% for f in hotel.features.all %}
+                    <li><i class="{{ f.icon }}" style="color:#1a1a1a;margin-right:6px;"></i> {{ f.name }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- FAQ Accordion -->
+            {% if faqs %}
+            <div class="utf_dashboard_list_box" style="padding:20px;margin-bottom:30px;margin-top:40px;">
+              <h4><i class="fas fa-question-circle" style="color:#ec4899;"></i> Frequently Asked Questions</h4>
+              {% for faq in faqs %}
+              <div style="border-bottom:1px solid #f0f0f0;">
+                <button class="rh-faq-btn" data-idx="{{ forloop.counter }}"
+                  style="width:100%;display:flex;justify-content:space-between;align-items:center;
+                         padding:12px 0;background:none;border:none;cursor:pointer;text-align:left;">
+                  <span style="font-size:.95rem;font-weight:700;color:#333;">{{ faq.question }}</span>
+                  <span class="rh-faq-ico" style="font-size:1.2rem;color:#ec4899;transition:transform .3s;margin-left:12px;">+</span>
+                </button>
+                <div class="rh-faq-body" data-idx="{{ forloop.counter }}"
+                  style="display:none;padding:0 0 12px;border-left:3px solid #ec4899;padding-left:14px;">
+                  <p style="font-size:.88rem;color:#666;line-height:1.7;margin:0;">{{ faq.answer }}</p>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Room Types -->
+            <div class="utf_listing_section margin-top-40">
+                <h3 class="utf_listing_headline_part margin-bottom-25">
+                    <i class="sl sl-icon-layers"></i> Available Room Types
+                </h3>
+                <div style="display:inline-flex;align-items:center;gap:8px;
+                            background:{{ season_color }}1a;border:1px solid {{ season_color }}55;
+                            border-radius:20px;padding:6px 14px;margin-bottom:16px;
+                            font-size:.85rem;font-weight:600;color:{{ season_color }};">
+                    {{ season_emoji }} {{ season }} &nbsp;·&nbsp;
+                    <span style="font-weight:400;color:#555;">{{ season_note }}</span>
+                </div>
+                <div class="row">
+                    {% for rt in hotel.hotel_room_types %}
+                    <div class="col-md-6 margin-bottom-25">
+                        <div class="utf_listing_item-container">
+                            <div class="utf_listing_item">
+                                {% if rt.thumbnail %}
+                                    <img src="{{ rt.thumbnail.url }}" alt="{{ rt.type }}">
+                                {% else %}
+                                    <div style="width:100%;height:200px;background:#f0f0f0;display:flex;
+                                                align-items:center;justify-content:center;">
+                                        <i class="fas fa-bed fa-2x" style="color:#bbb;"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="utf_listing_item_content">
+                                <div class="utf_listing_prige_block">
+                                    <span class="utf_meta_listing_price">
+                                        <i class="fa fa-tag"></i> ${{ rt.price }}/night
+                                    </span>
+                                    {% if season_multiplier != 1.0 %}
+                                    <div style="margin-top:4px;">
+                                        <span style="background:{{ season_color }}1a;color:{{ season_color }};
+                                                     border:1px solid {{ season_color }}55;padding:2px 8px;
+                                                     border-radius:12px;font-size:.73rem;font-weight:600;">
+                                            {{ season_emoji }} {% if season_multiplier > 1.0 %}Peak season — prices elevated{% else %}Low season deal!{% endif %}
+                                        </span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <h3>{{ rt.type }}</h3>
+                                <span><i class="fa fa-bed"></i> {{ rt.number_of_beds }} Bed(s)</span>
+                                {% with avail=rt.available_rooms.count %}
+                                <span style="display:inline-flex;align-items:center;gap:5px;font-size:.78rem;font-weight:600;
+                                             padding:3px 10px;border-radius:20px;margin-top:6px;
+                                             {% if avail > 0 %}background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;
+                                             {% else %}background:#fef2f2;color:#991b1b;border:1px solid #fecaca;{% endif %}">
+                                  <span style="width:6px;height:6px;border-radius:50%;display:inline-block;
+                                        {% if avail > 0 %}background:#22c55e;{% else %}background:#ef4444;{% endif %}"></span>
+                                  {% if avail > 0 %}{{ avail }} Room(s) Available{% else %}Fully Booked{% endif %}
+                                </span>
+                                {% endwith %}
+                            </div>
+                        </div>
+                        <a href="{% url 'rooms:room_type_detail' hotel.slug rt.slug %}{% if checkin and checkout %}?checkin={{ checkin }}&checkout={{ checkout }}&adult={{ adults }}&children={{ children }}{% endif %}"
+                           class="button fullwidth_block margin-top-5">
+                            Select This Room Type
+                        </a>
+                    </div>
+                    {% empty %}
+                    <div class="col-md-12">
+                        <p style="color:#aaa;">No room types added yet.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Location Map -->
+            <div class="utf_listing_section margin-top-40">
+                <h3 class="utf_listing_headline_part margin-bottom-20">
+                    <i class="fas fa-map-marker-alt"></i> Location
+                </h3>
+                <div style="border-radius:12px;overflow:hidden;border:1.5px solid var(--border);box-shadow:var(--sh-sm);">
+                    <iframe
+                        width="100%" height="320" frameborder="0" style="border:0;display:block;"
+                        loading="lazy" allowfullscreen
+                        src="https://www.google.com/maps?q={{ hotel.address|urlencode }}{% if hotel.city %},+{{ hotel.city|urlencode }}{% endif %}&output=embed">
+                    </iframe>
+                </div>
+                <p style="font-size:.82rem;color:var(--t2);margin-top:8px;">
+                    <i class="fas fa-location-arrow"></i> {{ hotel.address }}{% if hotel.city %}, {{ hotel.city }}{% endif %}
+                </p>
+            </div>
+
+            <!-- Reviews -->
+            <div id="utf_listing_reviews_part" class="utf_listing_section">
+                <h3 class="utf_listing_headline_part margin-bottom-25 margin-top-50">
+                    <i class="sl sl-icon-bubble"></i> Reviews
+                    <span class="utf_reviews_count">{{ all_reviews.count }}</span>
+                </h3>
+
+                {% if rating_breakdown %}
+                <div style="background:#f9f9f9;border-radius:8px;padding:20px;margin-bottom:25px;">
+                    <h4 style="margin-bottom:12px;">Rating Breakdown</h4>
+                    {% for stars, count, pct in rating_breakdown %}
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                        <span style="min-width:40px;font-size:.85rem;color:#555;">{{ stars }}★</span>
+                        <div style="flex:1;background:#e0e0e0;border-radius:4px;height:8px;">
+                            <div style="width:{{ pct }}%;background:#ec4899;height:8px;border-radius:4px;"></div>
+                        </div>
+                        <span style="min-width:25px;font-size:.82rem;color:#888;">{{ count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% for review in all_reviews %}
+                <div class="utf_reviews_items_container">
+                    <div class="utf_reviews_container">
+                        <div class="utf_reviews_header_block">
+                            <div class="utf_reviews_author_part">
+                                <div class="utf_inner_utf_reviews_author_part">
+                                    <i class="fa fa-user-circle fa-2x" style="color:#1a1a1a;"></i>
+                                </div>
+                                <div class="utf_reviews_author_title">
+                                    <h4>{{ review.user.username|default:"Anonymous" }}</h4>
+                                    {% if review.user_id in verified_reviewers %}
+                                    <span style="display:inline-flex;align-items:center;gap:4px;background:#f0fdf4;color:#166534;
+                                                 font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:20px;
+                                                 border:1px solid #bbf7d0;margin-left:8px;">
+                                        <i class="fas fa-check-circle" style="font-size:.68rem;"></i> Verified Stay
+                                    </span>
+                                    {% endif %}
+                                    <span class="utf_reviews_date">
+                                        <i class="fa fa-calendar"></i> {{ review.date|date:"M d, Y" }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="utf_star_rating_section" data-rating="{{ review.rating }}">
+                                <div class="utf_counter_star_rating">{{ review.get_rating_display }}</div>
+                            </div>
+                        </div>
+                        <div class="utf_reviews_listing_section">
+                            <p>{{ review.review }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p style="color:#aaa;">No reviews yet. Be the first to leave one!</p>
+                {% endfor %}
+
+                <!-- Write Review Popup -->
+                {% if user.is_authenticated and not user_review %}
+                <div id="small-dialog" class="zoom-anim-dialog mfp-hide">
+                    <div class="small_dialog_header"><h3>Write a Review</h3></div>
+                    <form method="POST" action="{% url 'rooms:add_review' hotel.slug %}">
+                        {% csrf_token %}
+                        <div class="utf_message_reply_block margin-top-0" id="review_div">
+                            <select name="rating" class="utf_chosen_select_single margin-bottom-15"
+                                    style="width:100%;margin-bottom:15px;">
+                                <option value="5">★★★★★ — Excellent</option>
+                                <option value="4">★★★★☆ — Good</option>
+                                <option value="3" selected>★★★☆☆ — Average</option>
+                                <option value="2">★★☆☆☆ — Below Average</option>
+                                <option value="1">★☆☆☆☆ — Poor</option>
+                            </select>
+                            <textarea name="review" cols="40" rows="4"
+                                      placeholder="Share your experience at {{ hotel.name }}…"></textarea>
+                            <button type="submit" class="button margin-top-15">
+                                <i class="fa fa-paper-plane"></i> Submit Review
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+
+
+        </div>
+
+        <!-- RIGHT: Sticky Sidebar -->
+        <aside class="rh-detail-sidebar">
+
+                <!-- Hotel Quick Info -->
+                <div class="utf_box_widget_item margin-bottom-35">
+                    <h3><i class="sl sl-icon-phone"></i> Contact Hotel</h3>
+                    <ul class="utf_box_widget_contacts_list">
+                        <li><i class="fa fa-phone"></i> {{ hotel.mobile }}</li>
+                        <li><i class="fa fa-envelope-o"></i> {{ hotel.email }}</li>
+                        <li><i class="fa fa-map-marker"></i> {{ hotel.address }}</li>
+                    </ul>
+                </div>
+
+                <!-- Booking Widget -->
+                <div class="boxed-widget opening-hours summary margin-bottom-35" id="booking-calc" data-minprice="{{ min_price|default:0 }}">
+                    <h3><i class="fa fa-calendar-check-o"></i> Quick Booking</h3>
+                    <form method="GET" action="{% url 'rooms:room_type_detail' hotel.slug hotel.hotel_room_types.first.slug|default:'select' %}">
+                        <div class="utf_row_form">
+                            <label>Check-In Date</label>
+                            <input type="date" name="checkin" class="utf_search_widget_input"
+                                   min="{{ today }}" style="width:100%;">
+                        </div>
+                        <div class="utf_row_form margin-top-10">
+                            <label>Check-Out Date</label>
+                            <input type="date" name="checkout" class="utf_search_widget_input"
+                                   min="{{ today }}" style="width:100%;">
+                        </div>
+                        <div class="row margin-top-10">
+                            <div class="col-sm-6">
+                                <label>Adults</label>
+                                <input type="number" name="adult" value="1" min="1"
+                                       class="utf_search_widget_input">
+                            </div>
+                            <div class="col-sm-6">
+                                <label>Children</label>
+                                <input type="number" name="children" value="0" min="0"
+                                       class="utf_search_widget_input">
+                            </div>
+                        </div>
+                        <div class="utf_row_form margin-top-15">
+                            <select name="room-type" class="utf_chosen_select_single">
+                                <option value="">Select Room Type</option>
+                                {% for rt in hotel.hotel_room_types %}
+                                <option value="{{ rt.slug }}">{{ rt.type }} — ${{ rt.price }}/night</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div id="nights-pill" style="margin-top:8px;min-height:24px;"></div>
+                        <button type="submit" class="button fullwidth_block margin-top-15">
+                            <i class="fa fa-search"></i> Check Availability
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Hotel Stats -->
+                <div class="utf_box_widget_item">
+                    <h3><i class="sl sl-icon-chart"></i> Hotel Stats</h3>
+                    <ul class="utf_box_widget_contacts_list">
+                        <li><i class="fa fa-eye"></i> {{ hotel.views }} Views</li>
+                        <li><i class="fa fa-star"></i> {{ all_reviews.count }} Reviews</li>
+                        <li><i class="fa fa-bed"></i> {{ hotel.hotel_room_types.count }} Room Types</li>
+                        <li>
+                            <i class="fa fa-circle"
+                               style="color:{% if hotel.status == 'Live' %}#27ae60{% else %}#e74c3c{% endif %};"></i>
+                            {{ hotel.status }}
+                        </li>
+                    </ul>
+                </div>
+
+        </aside>
+
+    </div>
+</div>
+
+<!-- Share Script -->
+<script>
+$('#clipboard').on('click', function(e){
+    e.preventDefault();
+    var tmp = $('<input>');
+    $('body').append(tmp);
+    tmp.val(window.location.href).select();
+    document.execCommand('copy');
+    tmp.remove();
+    $(this).html('<i class="fa fa-check-circle"></i> URL Copied!');
+    setTimeout(function(){ $('#clipboard').html('<i class="fa fa-share"></i> Share'); }, 2000);
+});
+</script>
+
+<!-- ══ LIGHTBOX (U11) ══ -->
+<div id="rh-lightbox">
+    <button id="rh-lb-close">✕</button>
+    <button id="rh-lb-prev">&#8592;</button>
+    <img id="rh-lb-img" src="" alt="">
+    <button id="rh-lb-next">&#8594;</button>
+    <div id="rh-lb-counter"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ── Recently Viewed: save this hotel to sessionStorage ── */
+(function(){
+  var el=document.getElementById('rh-hotel-data');if(!el)return;
+  var entry={slug:el.dataset.slug,name:el.dataset.name,
+             city:el.dataset.city,price:el.dataset.price,img:el.dataset.img};
+  var list=JSON.parse(sessionStorage.getItem('rh-viewed')||'[]');
+  list=list.filter(function(x){return x.slug!==entry.slug;});
+  list.unshift(entry);
+  sessionStorage.setItem('rh-viewed',JSON.stringify(list.slice(0,5)));
+})();
+
+/* ── FAQ accordion ── */
+document.querySelectorAll('.rh-faq-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var idx=btn.dataset.idx;
+    var body=document.querySelector('.rh-faq-body[data-idx="'+idx+'"]');
+    var ico=btn.querySelector('.rh-faq-ico');
+    var isOpen=body.style.display!=='none';
+    document.querySelectorAll('.rh-faq-body').forEach(function(b){b.style.display='none';});
+    document.querySelectorAll('.rh-faq-ico').forEach(function(i){i.style.transform='rotate(0)';i.style.color='#ec4899';});
+    if(!isOpen){body.style.display='block';ico.style.transform='rotate(45deg)';ico.style.color='#8b5cf6';}
+  });
+});
+
+/* ── Date validation + nights calculator ── */
+var ci=document.querySelector('[name="checkin"]'),co=document.querySelector('[name="checkout"]');
+if(ci)ci.min=new Date().toISOString().split('T')[0];
+if(ci)ci.addEventListener('change',function(){if(co)co.min=ci.value;updateCalc();});
+if(co)co.addEventListener('change',updateCalc);
+function updateCalc(){
+  if(!ci||!co||!ci.value||!co.value)return;
+  var n=Math.round((new Date(co.value)-new Date(ci.value))/86400000);
+  var price=+((document.getElementById('booking-calc')||{dataset:{}}).dataset.minprice||0);
+  var pill=document.getElementById('nights-pill');if(!pill)return;
+  if(n>0)pill.innerHTML='<span style="background:linear-gradient(135deg,#ec4899,#8b5cf6);color:#fff;padding:4px 14px;border-radius:20px;font-weight:700;">'+n+' nights · est. $'+(n*price).toLocaleString()+'</span>';
+  else pill.innerHTML='<span style="color:#ef4444;">⚠ Check-out must be after check-in</span>';
+}
+</script>
+
+<script>
+/* ── Lightbox (U11) ── */
+(function(){
+    var lbImgs=[], lbIdx=0;
+    document.querySelectorAll('.rh-hotel-photo').forEach(function(img,i){
+        lbImgs.push(img.src);
+        img.addEventListener('click',function(){ lbIdx=i; openLb(); });
+    });
+    function openLb(){
+        var li=document.getElementById('rh-lightbox');if(!li)return;
+        document.getElementById('rh-lb-img').src=lbImgs[lbIdx];
+        document.getElementById('rh-lb-counter').textContent=(lbIdx+1)+' / '+lbImgs.length;
+        li.classList.add('open');
+    }
+    var lbClose=document.getElementById('rh-lb-close');
+    if(lbClose)lbClose.onclick=function(){ document.getElementById('rh-lightbox').classList.remove('open'); };
+    var lbPrev=document.getElementById('rh-lb-prev');
+    if(lbPrev)lbPrev.onclick=function(){ lbIdx=(lbIdx-1+lbImgs.length)%lbImgs.length; openLb(); };
+    var lbNext=document.getElementById('rh-lb-next');
+    if(lbNext)lbNext.onclick=function(){ lbIdx=(lbIdx+1)%lbImgs.length; openLb(); };
+    document.addEventListener('keydown',function(e){
+        if(!document.getElementById('rh-lightbox').classList.contains('open'))return;
+        if(e.key==='Escape')document.getElementById('rh-lightbox').classList.remove('open');
+        if(e.key==='ArrowLeft'){ lbIdx=(lbIdx-1+lbImgs.length)%lbImgs.length; openLb(); }
+        if(e.key==='ArrowRight'){ lbIdx=(lbIdx+1)%lbImgs.length; openLb(); }
+    });
+})();
+</script>
+{% endblock %}

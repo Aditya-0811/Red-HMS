@@ -1,0 +1,149 @@
+{% extends 'partials/dashboard_base.html' %}
+{% load static %}
+{% block title %}Wallet – Red HMS{% endblock %}
+
+{% block content %}
+<div id="dashboard">
+    <a href="#" class="utf_dashboard_nav_responsive"><i class="fa fa-reorder"></i> Dashboard Menu</a>
+    {% include 'partials/dashboard_sidebar.html' %}
+
+    <div class="utf_dashboard_content">
+        <div id="titlebar" class="dashboard_gradient">
+            <div class="row"><div class="col-md-12">
+                <h2>Wallet</h2>
+                <nav id="breadcrumbs"><ul>
+                    <li><a href="{% url 'rooms:index' %}">Home</a></li>
+                    <li><a href="{% url 'reports:dashboard' %}">Dashboard</a></li>
+                    <li>Wallet</li>
+                </ul></nav>
+            </div></div>
+        </div>
+
+        <div class="row">
+            <!-- Wallet Balance Card -->
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="utf_dashboard_stat color-2">
+                    <div class="utf_dashboard_stat_content">
+                        <h4>${{ total_spent.amount|default:"0.00"|floatformat:2 }}</h4>
+                        <span>Total Spent</span>
+                    </div>
+                    <div class="utf_dashboard_stat_icon"><i class="fas fa-dollar-sign"></i></div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="utf_dashboard_stat color-1">
+                    <div class="utf_dashboard_stat_content">
+                        <h4>{{ bookings.count }}</h4>
+                        <span>Paid Bookings</span>
+                    </div>
+                    <div class="utf_dashboard_stat_icon"><i class="fas fa-check-circle"></i></div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="utf_dashboard_stat color-3"
+                     style="background:linear-gradient(135deg,#ec4899,#8b5cf6);">
+                    <div class="utf_dashboard_stat_content">
+                        <h4 id="wallet-balance">${{ wallet_balance|floatformat:2 }}</h4>
+                        <span>Wallet Balance</span>
+                    </div>
+                    <div class="utf_dashboard_stat_icon"><i class="fas fa-wallet"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top-Up Widget -->
+        <div class="row margin-top-25">
+            <div class="col-lg-6 col-md-8 col-sm-12">
+                <div class="utf_dashboard_list_box" style="padding:24px;">
+                    <h4><i class="fas fa-plus-circle" style="color:#ec4899;"></i> Top Up Wallet</h4>
+                    <div class="notification warning" style="padding:10px 14px;margin-bottom:16px;font-size:.85rem;">
+                        <p>⚠ Demo top-up — connect Stripe in production before going live.</p>
+                    </div>
+                    <p style="font-size:.85rem;color:#888;margin-bottom:12px;">Quick amounts:</p>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+                        <button class="button border topup-preset" data-amount="10" style="padding:8px 18px;font-weight:700;">$10</button>
+                        <button class="button border topup-preset" data-amount="25" style="padding:8px 18px;font-weight:700;">$25</button>
+                        <button class="button border topup-preset" data-amount="50" style="padding:8px 18px;font-weight:700;">$50</button>
+                        <button class="button border topup-preset" data-amount="100" style="padding:8px 18px;font-weight:700;">$100</button>
+                    </div>
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <input type="number" id="topup-custom" placeholder="Custom amount"
+                               min="1" max="10000"
+                               style="flex:1;padding:10px 14px;border:1.5px solid #e0e0e0;
+                                      border-radius:8px;font-size:.9rem;">
+                        <button id="topup-add" class="button" style="padding:10px 20px;white-space:nowrap;">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="row margin-top-25">
+            <div class="col-lg-12 col-md-12">
+                <div class="utf_dashboard_list_box table-responsive margin-top-0">
+                    <h4><i class="fas fa-history"></i> Transaction History</h4>
+                    <table class="table table-hover" style="font-size:.9rem;">
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Invoice</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in wallet_transactions %}
+                            <tr>
+                                <td><code>#{{ t.booking_id }}</code></td>
+                                <td><strong>${{ t.total|floatformat:2 }}</strong></td>
+                                <td>{{ t.date|date:"d M Y" }}</td>
+                                <td>
+                                    <a href="{% url 'billing:invoice' t.booking_id %}"
+                                       class="button gray" style="padding:4px 10px;font-size:.8rem;">
+                                        <i class="fas fa-file-invoice"></i> Invoice
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" style="text-align:center;color:#aaa;padding:30px;">
+                                    <i class="fa fa-inbox fa-2x" style="display:block;margin-bottom:10px;"></i>
+                                    No transactions yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.topup-preset').forEach(function (b) {
+    b.addEventListener('click', function () { topup(b.dataset.amount); });
+});
+document.getElementById('topup-add').addEventListener('click', function () {
+    topup(document.getElementById('topup-custom').value);
+});
+function topup(amount) {
+    if (!amount || +amount <= 0) return;
+    var fd = new FormData();
+    fd.append('amount', amount);
+    fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    fetch('{% url "reports:wallet_topup" %}', { method: 'POST', body: fd })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+            if (d.error) { alert(d.error); return; }
+            document.getElementById('wallet-balance').textContent =
+                '$' + parseFloat(d.balance).toFixed(2);
+            document.getElementById('topup-custom').value = '';
+        });
+}
+</script>
+{% endblock %}

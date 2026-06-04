@@ -1,0 +1,533 @@
+{% extends 'partials/dashboard_base.html' %}
+{% load static %}
+{% block title %}Dashboard – Red HMS{% endblock %}
+
+{% block extra_css %}
+<style>
+@keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.utf_dashboard_stat{animation:fadeInUp 0.5s ease both;}
+.utf_dashboard_content .row:first-child .col-lg-3:nth-child(1) .utf_dashboard_stat{animation-delay:0s;}
+.utf_dashboard_content .row:first-child .col-lg-3:nth-child(2) .utf_dashboard_stat{animation-delay:.1s;}
+.utf_dashboard_content .row:first-child .col-lg-3:nth-child(3) .utf_dashboard_stat{animation-delay:.2s;}
+.utf_dashboard_content .row:first-child .col-lg-3:nth-child(4) .utf_dashboard_stat{animation-delay:.3s;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="dashboard">
+    <a href="#" class="utf_dashboard_nav_responsive">
+        <i class="fa fa-reorder"></i> Dashboard Sidebar Menu
+    </a>
+    {% include 'partials/dashboard_sidebar.html' %}
+
+    <div class="utf_dashboard_content">
+
+        {% if is_staff_view %}
+        <!-- ══ STAFF STATS ══ -->
+        <div class="row">
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <div class="utf_dashboard_stat color-1">
+                    <div class="utf_dashboard_stat_content">
+                        <h4 data-target="{{ total_reservations }}">{{ total_reservations }}</h4>
+                        <span>Total Bookings</span>
+                    </div>
+                    <div class="utf_dashboard_stat_icon"><i class="fas fa-calendar-check"></i></div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <div class="utf_dashboard_stat color-2">
+                    <div class="utf_dashboard_stat_content">
+                        <h4 data-prefix="$" data-target="{{ revenue_all_time|floatformat:0 }}">${{ revenue_all_time|floatformat:0 }}</h4>
+                        <span>Total Revenue</span>
+                    </div>
+                    <div class="utf_dashboard_stat_icon"><i class="fas fa-dollar-sign"></i></div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <div class="utf_dashboard_stat color-3">
+                    <div class="utf_dashboard_stat_content">
+                        <h4 data-target="{{ occupancy_rate }}" data-suffix="%">{{ occupancy_rate }}%</h4>
+                        <span>Occupancy Rate</span>
+                    </div>
+                    <div class="utf_dashboard_stat_icon"><i class="fas fa-bed"></i></div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <div class="utf_dashboard_stat" style="background:linear-gradient(135deg,#8e44ad,#9b59b6);">
+                    <div class="utf_dashboard_stat_content">
+                        <h4 data-target="{{ total_guests }}">{{ total_guests }}</h4>
+                        <span>Registered Guests</span>
+                    </div>
+                    <div class="utf_dashboard_stat_icon"><i class="fas fa-users"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secondary metrics row -->
+        <div class="row margin-top-20">
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <div class="utf_dashboard_list_box" style="padding:15px;text-align:center;">
+                    <span style="font-size:.8rem;color:#888;">This Month</span>
+                    <h4 style="color:#1a1a1a;margin:4px 0;">${{ revenue_this_month|floatformat:0 }}</h4>
+                    <small>Revenue</small>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <div class="utf_dashboard_list_box" style="padding:15px;text-align:center;">
+                    <span style="font-size:.8rem;color:#888;">Available</span>
+                    <h4 style="color:#27ae60;margin:4px 0;">{{ available_rooms }}</h4>
+                    <small>Rooms</small>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <div class="utf_dashboard_list_box" style="padding:15px;text-align:center;">
+                    <span style="font-size:.8rem;color:#888;">Occupied</span>
+                    <h4 style="color:#e67e22;margin:4px 0;">{{ occupied_rooms }}</h4>
+                    <small>Rooms</small>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <div class="utf_dashboard_list_box" style="padding:15px;text-align:center;">
+                    <span style="font-size:.8rem;color:#888;">Today's</span>
+                    <h4 style="color:#2980b9;margin:4px 0;">{{ todays_checkins }}</h4>
+                    <small>Check-Ins</small>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <div class="utf_dashboard_list_box" style="padding:15px;text-align:center;">
+                    <span style="font-size:.8rem;color:#888;">Today's</span>
+                    <h4 style="color:#7f8c8d;margin:4px 0;">{{ todays_checkouts }}</h4>
+                    <small>Check-Outs</small>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <div class="utf_dashboard_list_box" style="padding:15px;text-align:center;">
+                    <span style="font-size:.8rem;color:#888;">Active</span>
+                    <h4 style="color:#1a1a1a;margin:4px 0;">{{ active_reservations }}</h4>
+                    <small>Bookings</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div class="row margin-top-20 margin-bottom-20">
+            <div class="col-md-12">
+                <a href="{% url 'reports:revenue_report' %}" class="button border" style="margin-right:8px;">
+                    <i class="fa fa-bar-chart"></i> Revenue Report
+                </a>
+                <a href="{% url 'reports:occupancy_report' %}" class="button border" style="margin-right:8px;">
+                    <i class="fa fa-building"></i> Occupancy
+                </a>
+                <a href="{% url 'reports:all_bookings' %}" class="button border" style="margin-right:8px;">
+                    <i class="fa fa-list"></i> All Bookings
+                </a>
+                <a href="/admin/" class="button border" target="_blank">
+                    <i class="fa fa-cog"></i> Admin Panel
+                </a>
+            </div>
+        </div>
+
+        <!-- Today's Check-In Panel -->
+        {% if arriving_today %}
+        <div class="row margin-top-20 margin-bottom-10">
+            <div class="col-lg-12">
+                <div class="utf_dashboard_list_box" style="padding:20px;">
+                    <h4 style="margin-bottom:12px;">
+                        <i class="fas fa-door-open" style="color:#06b6d4;"></i> Today's Arrivals
+                        <span style="font-size:.82rem;font-weight:400;color:#888;margin-left:8px;">{{ arriving_today.count }} expected</span>
+                    </h4>
+                    <div style="background:#e0e0e0;border-radius:4px;height:8px;margin-bottom:6px;">
+                        <div id="ci-bar" style="width:0%;background:linear-gradient(135deg,#06b6d4,#22c55e);height:8px;border-radius:4px;transition:width .4s;"></div>
+                    </div>
+                    <div id="ci-progress" style="font-size:.8rem;color:#888;margin-bottom:14px;">0/{{ arriving_today.count }} checked in</div>
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%;font-size:.87rem;border-collapse:collapse;">
+                            <thead>
+                                <tr style="border-bottom:1px solid #f0f0f0;">
+                                    <th style="padding:8px;text-align:left;font-size:.78rem;color:#888;font-weight:600;">Done</th>
+                                    <th style="padding:8px;text-align:left;font-size:.78rem;color:#888;font-weight:600;">Guest</th>
+                                    <th style="padding:8px;text-align:left;font-size:.78rem;color:#888;font-weight:600;">Hotel</th>
+                                    <th style="padding:8px;text-align:left;font-size:.78rem;color:#888;font-weight:600;">Room Type</th>
+                                    <th style="padding:8px;text-align:left;font-size:.78rem;color:#888;font-weight:600;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for res in arriving_today %}
+                                <tr style="border-bottom:1px solid #f8f8f8;">
+                                    <td style="padding:8px;">
+                                        <input type="checkbox" class="ci-cb" data-id="{{ res.booking_id }}"
+                                               {% if res.checked_in %}checked{% endif %}
+                                               style="width:16px;height:16px;cursor:pointer;">
+                                    </td>
+                                    <td style="padding:8px;"><strong>{{ res.full_name|truncatechars:20 }}</strong><br><small style="color:#aaa;">{{ res.email }}</small></td>
+                                    <td style="padding:8px;">{{ res.hotel.name|truncatechars:18 }}</td>
+                                    <td style="padding:8px;">{{ res.room_type.type }}</td>
+                                    <td style="padding:8px;">
+                                        {% if res.checked_in %}
+                                        <span style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;padding:2px 8px;border-radius:12px;font-size:.75rem;font-weight:700;">✓ In</span>
+                                        {% else %}
+                                        <span style="background:#fffbeb;color:#92400e;border:1px solid #fde68a;padding:2px 8px;border-radius:12px;font-size:.75rem;font-weight:700;">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Room Status Board -->
+        {% if request.user.role == 'Housekeeping' or request.user.role == 'Admin' %}
+        {% if all_rooms %}
+        <div class="row margin-top-20 margin-bottom-10">
+            <div class="col-lg-12">
+                <div class="utf_dashboard_list_box" style="padding:20px;">
+                    <h4 style="margin-bottom:16px;">
+                        <i class="fas fa-th" style="color:#8b5cf6;"></i> Room Status Board
+                        <small style="font-size:.78rem;font-weight:400;color:#888;margin-left:8px;">(click a room to toggle)</small>
+                    </h4>
+                    {% regroup all_rooms by hotel as hotel_groups %}
+                    {% for group in hotel_groups %}
+                    <div style="margin-bottom:20px;">
+                        <h5 style="font-size:.88rem;font-weight:700;color:#555;border-bottom:1px solid #f0f0f0;padding-bottom:6px;margin-bottom:10px;">
+                            {{ group.grouper.name }}
+                        </h5>
+                        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                            {% for room in group.list %}
+                            <div class="rh-room-card" data-room-id="{{ room.id }}"
+                                 data-status="{% if room.is_available %}available{% else %}occupied{% endif %}"
+                                 style="cursor:pointer;border-radius:8px;background:#fafafa;
+                                        border:1px solid #e0e0e0;
+                                        border-top:3px solid {% if room.is_available %}#22c55e{% else %}#ef4444{% endif %};
+                                        padding:10px 14px;min-width:90px;text-align:center;transition:box-shadow .2s;">
+                                <div style="font-weight:700;font-size:.9rem;">{{ room.room_number }}</div>
+                                <div style="font-size:.72rem;color:#888;">{{ room.room_type.type }}</div>
+                                <div class="rh-room-status" style="font-size:.72rem;margin-top:4px;">
+                                    {% if room.is_available %}
+                                    <span style="color:#22c55e;">● Available</span>
+                                    {% else %}
+                                    <span style="color:#ef4444;">● Occupied</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <!-- Charts -->
+        {% if is_staff_view %}
+        {{ revenue_by_month|json_script:"revenue-data" }}
+        <div class="row margin-top-20 margin-bottom-20">
+            <div class="col-lg-8 col-md-8">
+                <div class="utf_dashboard_list_box" style="padding:20px;">
+                    <h4><i class="fas fa-chart-bar"></i> Revenue – Last 6 Months</h4>
+                    <canvas id="revenueChart" height="100"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-4">
+                <div class="utf_dashboard_list_box" style="padding:20px;">
+                    <h4><i class="fas fa-bed"></i> Room Status</h4>
+                    <canvas id="occupancyChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Recent Bookings Table -->
+        <div class="row">
+            <div class="col-lg-12 col-md-12 mb-4">
+                <div class="utf_dashboard_list_box table-responsive recent_booking">
+                    <h4>Recent Bookings</h4>
+                    <div class="dashboard-list-box table-responsive invoices with-icons">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Guest</th>
+                                    <th>Hotel</th>
+                                    <th>Room Type</th>
+                                    <th>Check-In</th>
+                                    <th>Check-Out</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in recent_reservations %}
+                                <tr>
+                                    <td><code>#{{ r.booking_id }}</code></td>
+                                    <td>{{ r.full_name|truncatechars:18 }}</td>
+                                    <td>{{ r.hotel.name|truncatechars:18 }}</td>
+                                    <td>{{ r.room_type.type }}</td>
+                                    <td>{{ r.check_in_date }}</td>
+                                    <td>{{ r.check_out_date }}</td>
+                                    <td><strong>${{ r.total }}</strong></td>
+                                    <td>
+                                        <span class="badge text-uppercase"
+                                              style="background:{% if r.payment_status == 'paid' %}#27ae60{% elif r.payment_status == 'failed' %}#e74c3c{% else %}#f39c12{% endif %};color:#fff;padding:3px 8px;border-radius:4px;">
+                                            {{ r.payment_status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'billing:invoice' r.booking_id %}"
+                                           class="button gray" style="padding:4px 10px;font-size:.8rem;">
+                                            <i class="fa fa-eye"></i> Invoice
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="9" style="text-align:center;color:#aaa;padding:30px;">No bookings yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invoice List -->
+            <div class="col-lg-12 col-md-12">
+                <div class="utf_dashboard_list_box invoices with-icons margin-top-20">
+                    <h4>Recent Invoices</h4>
+                    <ul>
+                        {% for r in recent_reservations %}
+                        {% if r.payment_status == "paid" %}
+                        <li>
+                            <i class="fas fa-receipt"></i>
+                            <strong>
+                                {{ r.hotel.name }}
+                                <span class="paid">{{ r.payment_status|title }}</span>
+                            </strong>
+                            <ul>
+                                <li><span>Booking ID:</span> #{{ r.booking_id }}</li>
+                                <li><span>Date:</span> {{ r.date|date:"d M, Y" }}</li>
+                                <li><span>Amount:</span> ${{ r.total }}</li>
+                            </ul>
+                            <div class="buttons-to-right">
+                                <a href="{% url 'billing:invoice' r.booking_id %}" class="button gray">
+                                    <i class="fas fa-arrow-right"></i> Invoice
+                                </a>
+                            </div>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- ══ GUEST DASHBOARD ══ -->
+        <div class="row">
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="utf_dashboard_stat color-1">
+                    <div class="utf_dashboard_stat_content">
+                        <h4>{{ total_bookings }}</h4>
+                        <span>Total Bookings</span>
+                    </div>
+                    <div class="utf_dashboard_stat_icon"><i class="fas fa-check"></i></div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="utf_dashboard_stat color-2">
+                    <div class="utf_dashboard_stat_content">
+                        <h4>${{ total_spent_amt|floatformat:2 }}</h4>
+                        <span>Total Spent</span>
+                    </div>
+                    <div class="utf_dashboard_stat_icon"><i class="fas fa-dollar-sign"></i></div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="utf_dashboard_stat color-3">
+                    <div class="utf_dashboard_stat_content">
+                        <h4>{{ active_bookings }}</h4>
+                        <span>Active Bookings</span>
+                    </div>
+                    <div class="utf_dashboard_stat_icon"><i class="fas fa-bed"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row margin-top-20">
+            <div class="col-lg-12 col-md-12 mb-4">
+                <div class="utf_dashboard_list_box table-responsive">
+                    <h4>My Bookings</h4>
+                    <div class="dashboard-list-box table-responsive invoices with-icons">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Booking ID</th>
+                                    <th>Hotel</th>
+                                    <th>Check-In</th>
+                                    <th>Check-Out</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in my_reservations %}
+                                <tr>
+                                    <td><code>#{{ r.booking_id }}</code></td>
+                                    <td>{{ r.hotel.name }}</td>
+                                    <td>{{ r.check_in_date }}</td>
+                                    <td>{{ r.check_out_date }}</td>
+                                    <td>${{ r.total }}</td>
+                                    <td>
+                                        <span class="badge text-uppercase"
+                                              style="background:{% if r.payment_status == 'paid' %}#27ae60{% elif r.payment_status == 'failed' %}#e74c3c{% else %}#f39c12{% endif %};color:#fff;padding:3px 8px;border-radius:4px;">
+                                            {{ r.payment_status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'guests:reservation_detail' r.booking_id %}"
+                                           class="button gray" style="padding:4px 10px;font-size:.8rem;">
+                                            <i class="fa fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px;">
+                                    No bookings yet.
+                                    <a href="{% url 'rooms:hotel_listing' %}" class="button margin-top-10">
+                                        Browse Hotels
+                                    </a>
+                                </td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if is_staff_view %}
+<script>
+/* ── Today's Check-In Toggle ── */
+var cbs=document.querySelectorAll('.ci-cb');
+function updateBar(){
+    var t=cbs.length,d=document.querySelectorAll('.ci-cb:checked').length;
+    var bar=document.getElementById('ci-bar'),prog=document.getElementById('ci-progress');
+    if(bar)bar.style.width=(t?d/t*100:0)+'%';
+    if(prog)prog.textContent=d+'/'+t+' checked in';
+}
+updateBar();
+cbs.forEach(function(cb){
+    cb.addEventListener('change',function(){
+        var fd=new FormData();fd.append('csrfmiddlewaretoken','{{ csrf_token }}');
+        fetch('/reports/toggle-checkin/'+cb.dataset.id+'/',{method:'POST',body:fd})
+        .then(function(r){return r.json();}).then(function(){updateBar();});
+    });
+});
+/* ── Room Status Board ── */
+document.querySelectorAll('.rh-room-card').forEach(function(card){
+    card.addEventListener('click',function(){
+        var newStatus=card.dataset.status==='available'?'occupied':'available';
+        var fd=new FormData();
+        fd.append('room_id',card.dataset.roomId);
+        fd.append('status',newStatus);
+        fd.append('csrfmiddlewaretoken','{{ csrf_token }}');
+        fetch('/reports/room-status/update/',{method:'POST',body:fd})
+        .then(function(r){return r.json();})
+        .then(function(d){
+            card.dataset.status=d.is_available?'available':'occupied';
+            card.style.borderTopColor=d.is_available?'#22c55e':'#ef4444';
+            var sd=card.querySelector('.rh-room-status');
+            if(sd)sd.innerHTML=d.is_available?'<span style="color:#22c55e;">● Available</span>':'<span style="color:#ef4444;">● Occupied</span>';
+        });
+    });
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function () {
+    var raw = JSON.parse(document.getElementById('revenue-data').textContent);
+    var labels = raw.map(function (item) {
+        var d = new Date(item[0]);
+        return d.toLocaleString('default', { month: 'short', year: 'numeric' });
+    });
+    var values = raw.map(function (item) { return parseFloat(item[1]); });
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Revenue ($)',
+                data: values,
+                backgroundColor: '#ec4899',
+                borderRadius: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { callback: function (v) { return '$' + v.toLocaleString(); } }
+                }
+            }
+        }
+    });
+    new Chart(document.getElementById('occupancyChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Available', 'Occupied'],
+            datasets: [{
+                data: [{{ available_rooms }}, {{ occupied_rooms }}],
+                backgroundColor: ['#ec4899', '#e0e0e0'],
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: '70%',
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+})();
+</script>
+{% endif %}
+<script>
+(function () {
+    var els = document.querySelectorAll('.utf_dashboard_stat_content h4[data-target]');
+    if (!els.length) return;
+    var duration = 1500;
+    var startTime = null;
+    function easeOutCubic(p) { return 1 - Math.pow(1 - p, 3); }
+    function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        var progress = Math.min((timestamp - startTime) / duration, 1);
+        var eased = easeOutCubic(progress);
+        els.forEach(function (el) {
+            var rawTarget = el.getAttribute('data-target');
+            var target = parseFloat(rawTarget) || 0;
+            var prefix = el.getAttribute('data-prefix') || '';
+            var suffix = el.getAttribute('data-suffix') || '';
+            var current = target * eased;
+            var display = rawTarget.indexOf('.') !== -1
+                ? current.toFixed(1)
+                : Math.round(current);
+            el.textContent = prefix + display + suffix;
+        });
+        if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+})();
+</script>
+{% endblock %}

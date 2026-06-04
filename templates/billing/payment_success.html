@@ -1,0 +1,113 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block title %}Booking Confirmed – Red HMS{% endblock %}
+
+{% block content %}
+
+<div id="titlebar">
+    <div class="container"><div class="row"><div class="col-md-12">
+        <h2>Booking Confirmed!</h2>
+        <nav id="breadcrumbs"><ul>
+            <li><a href="{% url 'rooms:index' %}">Home</a></li>
+            <li>Booking Confirmed</li>
+        </ul></nav>
+    </div></div></div>
+</div>
+
+<div class="container margin-top-50 margin-bottom-75">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2" style="max-width:680px;margin:0 auto;">
+
+            <!-- Success Banner -->
+            <div class="notification success" style="text-align:center;padding:30px 20px;border-radius:8px;">
+                <i class="fa fa-check-circle fa-4x" style="color:#27ae60;display:block;margin-bottom:15px;"></i>
+                <h2 style="color:#27ae60;margin-bottom:8px;">Payment Successful!</h2>
+                <p style="font-size:1rem;margin:0;">
+                    Thank you, <strong>{{ reservation.full_name }}</strong>!
+                    Your booking at <strong>{{ reservation.hotel.name }}</strong> is confirmed.
+                </p>
+            </div>
+
+            <!-- Booking Details -->
+            <div class="utf_booking_listing_section_form margin-top-35 margin-bottom-35">
+                <h3><i class="fa fa-info-circle"></i> Booking Details</h3>
+                <div class="utf_listing_section">
+                    <div class="utf_pricing_list_section">
+                        <ul>
+                            <li>
+                                <h5><i class="fa fa-hashtag" style="margin-right:5px;color:#888;"></i>Booking ID</h5>
+                                <span><code>#{{ reservation.booking_id }}</code></span>
+                            </li>
+                            <li>
+                                <h5><i class="fa fa-building" style="margin-right:5px;color:#888;"></i>Hotel</h5>
+                                <span>{{ reservation.hotel.name }}</span>
+                            </li>
+                            <li>
+                                <h5><i class="fa fa-bed" style="margin-right:5px;color:#888;"></i>Room Type</h5>
+                                <span>{{ reservation.room_type.type }}</span>
+                            </li>
+                            <li>
+                                <h5><i class="fa fa-calendar-check-o" style="margin-right:5px;color:#888;"></i>Check-In</h5>
+                                <span class="highlighted">{{ reservation.check_in_date }}</span>
+                            </li>
+                            <li>
+                                <h5><i class="fa fa-calendar-times-o" style="margin-right:5px;color:#888;"></i>Check-Out</h5>
+                                <span class="highlighted">{{ reservation.check_out_date }}</span>
+                            </li>
+                            <li>
+                                <h5><i class="fa fa-moon-o" style="margin-right:5px;color:#888;"></i>Nights</h5>
+                                <span>{{ reservation.total_days }}</span>
+                            </li>
+                            <li>
+                                <h5><i class="fa fa-dollar" style="margin-right:5px;color:#888;"></i>Amount Paid</h5>
+                                <span style="color:#27ae60;font-weight:700;">${{ reservation.total }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booked Rooms -->
+            <div class="utf_booking_listing_section_form margin-bottom-35">
+                <h3><i class="fa fa-bed"></i> Booked Rooms</h3>
+                <div class="utf_listing_section">
+                    <div class="utf_pricing_list_section">
+                        <ul>
+                            {% for r in rooms %}
+                            <li>
+                                <h5>Room {{ r.room_number }} — {{ r.room_type.type }}</h5>
+                                <p><i class="fa fa-bed"></i> {{ r.number_of_beds }} Bed(s)</p>
+                                <span>${{ r.price }}/night</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <p style="text-align:center;color:#aaa;">
+                <i class="fa fa-envelope-o"></i>
+                A confirmation email has been sent to <strong>{{ reservation.email }}</strong>.
+            </p>
+
+            <!-- CTA Buttons -->
+            <div style="text-align:center;margin-top:25px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
+                <a href="{% url 'billing:invoice' reservation.booking_id %}" class="button"
+                   target="_blank" style="min-width:160px;">
+                    <i class="fa fa-file-text-o"></i> View Invoice
+                </a>
+                <a href="{% url 'reports:dashboard' %}" class="button" style="min-width:160px;">
+                    <i class="fa fa-tachometer"></i> My Dashboard
+                </a>
+                <a href="{% url 'guests:my_reservations' %}" class="button border" style="min-width:140px;">
+                    <i class="fa fa-list"></i> My Bookings
+                </a>
+                <a href="{% url 'rooms:index' %}" class="button border" style="min-width:100px;">
+                    <i class="fa fa-home"></i> Home
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

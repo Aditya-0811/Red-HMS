@@ -1,0 +1,600 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Red HMS – Hotel Management &amp; Booking System">
+    <meta name="author" content="Red HMS Final Year Project">
+    <title>{% block title %}Red HMS – Hotel Management System{% endblock %}</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+
+    <!-- ── Dark mode CSS variables ── -->
+    <style>
+    :root{--bg:#faf7f2;--fg:#1d1d1f;--card:#fff;--border:#e5e5e5;--muted:#888;}
+    [data-theme="dark"]{--bg:#0f0f11;--fg:#f0f0f0;--card:#1a1a1f;--border:#2a2a30;--muted:#666;}
+    body{background:var(--bg)!important;color:var(--fg)!important;transition:background .3s,color .3s,opacity .2s ease;}
+
+    /* ── Branded preloader ── */
+    #rh-preloader{position:fixed;top:0;left:0;width:100%;height:100vh;background:#fff;z-index:9999;display:flex;align-items:center;justify-content:center;transition:opacity .5s ease,transform .6s ease;}
+    #rh-preloader-inner{display:flex;flex-direction:column;align-items:center;}
+    .rh-logo-text{font-family:'Nunito',sans-serif;font-size:42px;font-weight:900;letter-spacing:-1px;margin-bottom:24px;text-align:center;}
+    .rh-logo-red{color:#1d1d1f;}
+    .rh-logo-hms{color:#ec4899;}
+    .rh-loader-bar{width:160px;height:3px;background:#f0f0f0;border-radius:4px;overflow:hidden;}
+    .rh-loader-fill{height:100%;width:0%;background:#ec4899;border-radius:4px;animation:rhFill 1.4s ease forwards;}
+    @keyframes rhFill{from{width:0%;}to{width:100%;}}
+    .rh-preloader-hidden{opacity:0!important;pointer-events:none!important;transform:translateY(-100%)!important;}
+    </style>
+
+    <!-- ── Reference CSS Framework (U-Listing theme) ── -->
+    <link rel="stylesheet" href="{% static 'css/stylesheet.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mmenu.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" id="colors">
+
+    <!-- ── Icon Libraries ── -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.2.0/fonts/remixicon.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- ── Google Fonts ── -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito:300,400,600,700,800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,600,700,800" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+    <!-- ── DateRangePicker CSS ── -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css"/>
+
+    <!-- ── Red HMS brand override (edit colours here) ── -->
+    <link rel="stylesheet" href="{% static 'css/red_hms.css' %}">
+
+    <!-- ── jQuery (must load before SweetAlert & other scripts) ── -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- ── SweetAlert2 (used for Django messages as toasts) ── -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- ── Lucide — modern SVG icon library ── -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- ══ MOBILE MENU OVERLAY ════════════════════════════════ -->
+<div id="rh-mobile-menu">
+    <button id="rh-menu-close">✕</button>
+    <nav>
+        <ul>
+            <li><a href="{% url 'rooms:index' %}">Home</a></li>
+            <li><a href="{% url 'rooms:hotel_listing' %}">Hotels</a></li>
+            <li><a href="{% url 'rooms:contact' %}">Contact</a></li>
+            <li><a href="{% url 'reports:dashboard' %}">Dashboard</a></li>
+        </ul>
+    </nav>
+</div>
+
+<!-- ══ PAGE-TO-PAGE FADE OVERLAY ══════════════════════════ -->
+<div id="rh-p2p-loader"></div>
+
+<!-- ══ PRELOADER ══════════════════════════════════════════ -->
+<div id="rh-preloader">
+    <div id="rh-preloader-inner">
+        <div class="rh-logo-text">
+            <span class="rh-logo-red">Red</span><span class="rh-logo-hms">HMS</span>
+        </div>
+        <div class="rh-loader-bar">
+            <div class="rh-loader-fill"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ WRAPPER ════════════════════════════════════════════ -->
+<div id="main_wrapper">
+
+    <!-- ══ HEADER / NAVBAR ════════════════════════════════ -->
+    <header id="header_part" class="fullwidth">
+        <div id="header" class="not-sticky">
+            <div class="container">
+
+                <!-- Left: Nav links only -->
+                <div class="utf_left_side">
+                    <div class="mmenu-trigger">
+                        <button class="hamburger utfbutton_collapse" type="button">
+                            <span class="utf_inner_button_box">
+                                <span class="utf_inner_section"></span>
+                            </span>
+                        </button>
+                    </div>
+                    <nav id="navigation" class="style_one">
+                        <ul id="responsive">
+                            <li><a href="{% url 'rooms:index' %}">Home</a></li>
+                            <li><a href="{% url 'rooms:hotel_listing' %}">Hotels</a></li>
+                            <li><a href="{% url 'rooms:contact' %}">Contact</a></li>
+                            <li><a href="{% url 'reports:dashboard' %}">Dashboard</a></li>
+                        </ul>
+                    </nav>
+                    <div class="clearfix"></div>
+                </div>
+
+                <!-- Logo — centred absolutely -->
+                <div id="logo" class="logo-center">
+                    <a href="{% url 'rooms:index' %}" style="display:inline-flex;align-items:baseline;text-decoration:none;">
+                        <span style="font-family:'Nunito',sans-serif;font-size:26px;font-weight:900;color:#1d1d1f;letter-spacing:-0.5px;">Red</span><span style="font-family:'Nunito',sans-serif;font-size:18px;font-weight:600;color:#ec4899;letter-spacing:1px;">HMS</span>
+                    </a>
+                </div>
+
+                <!-- Right: Auth -->
+                <div class="utf_right_side">
+                    <div class="header_widget">
+
+                        <!-- Dark mode toggle -->
+                        <button id="theme-toggle" title="Toggle dark mode"
+                          style="background:none;border:none;cursor:pointer;font-size:1.1rem;
+                                 margin-right:10px;color:var(--fg);padding:0;">☀️</button>
+
+                        <!-- Cart icon — always visible -->
+                        <a href="{% url 'guests:selected_rooms' %}" class="rh-cart-link" title="My Selection" style="position:relative;display:inline-flex;align-items:center;margin-right:12px;color:#1d1d1f;text-decoration:none;font-size:1.15rem;">
+                            <i class="fas fa-shopping-cart"></i>
+                            {% if selected_count %}
+                            <span class="rh-cart-badge" style="position:absolute;top:-8px;right:-10px;background:#ec4899;color:#fff;font-size:.65rem;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;line-height:1;">{{ selected_count }}</span>
+                            {% endif %}
+                        </a>
+
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'accounts:notifications' %}" id="nav-notif-bell"
+                           style="position:relative;display:inline-flex;align-items:center;
+                                  margin-right:12px;color:#1d1d1f;text-decoration:none;font-size:1.15rem;">
+                          <i class="fas fa-bell"></i>
+                          <span id="nav-notif-badge"
+                                style="display:none;position:absolute;top:-8px;right:-10px;
+                                       background:#ec4899;color:#fff;font-size:.65rem;font-weight:700;
+                                       min-width:18px;height:18px;border-radius:9px;
+                                       align-items:center;justify-content:center;padding:0 4px;">0</span>
+                        </a>
+                        <!-- ── Logged-in: Account dropdown ── -->
+                        <div class="rh-account-menu">
+                            <button class="rh-account-trigger" type="button">
+                                {% if user_profile and user_profile.image %}
+                                    <img src="{{ user_profile.image.url }}" alt="avatar"
+                                         style="width:22px;height:22px;border-radius:50%;object-fit:cover;margin-right:4px;">
+                                {% else %}
+                                    <i class="fas fa-user-circle"></i>
+                                {% endif %}
+                                {{ user.username|title }}
+                                <i class="fas fa-angle-down" style="font-size:.75rem;opacity:.7;"></i>
+                            </button>
+
+                            <div class="rh-account-dropdown">
+                                <div class="rh-acct-header">
+                                    {% if user_profile and user_profile.image %}
+                                        <img src="{{ user_profile.image.url }}" alt="avatar"
+                                             style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+                                    {% else %}
+                                        <span class="rh-acct-icon" style="width:38px;height:38px;font-size:1.1rem;">
+                                            <i class="fas fa-user"></i>
+                                        </span>
+                                    {% endif %}
+                                    <span>
+                                        <strong>{{ user.username|title }}</strong>
+                                        <small>{{ user.email }}</small>
+                                    </span>
+                                </div>
+                                <div class="rh-acct-divider"></div>
+                                <a href="{% url 'reports:dashboard' %}" class="rh-account-item">
+                                    <span class="rh-acct-icon"><i class="fas fa-tachometer-alt"></i></span>
+                                    <span><strong>Dashboard</strong><small>Overview &amp; stats</small></span>
+                                </a>
+                                <a href="{% url 'accounts:profile' %}" class="rh-account-item">
+                                    <span class="rh-acct-icon"><i class="fas fa-user"></i></span>
+                                    <span><strong>My Profile</strong><small>Edit your details</small></span>
+                                </a>
+                                <a href="{% url 'guests:my_reservations' %}" class="rh-account-item">
+                                    <span class="rh-acct-icon"><i class="fas fa-calendar-check"></i></span>
+                                    <span><strong>My Bookings</strong><small>View reservations</small></span>
+                                </a>
+                                <a href="{% url 'guests:wishlist' %}" class="rh-account-item">
+                                    <span class="rh-acct-icon"><i class="fas fa-heart"></i></span>
+                                    <span><strong>Wishlist</strong><small>Saved hotels</small></span>
+                                </a>
+                                <div class="rh-acct-divider"></div>
+                                <a href="{% url 'accounts:logout' %}" class="rh-account-item rh-account-item--danger">
+                                    <span class="rh-acct-icon rh-acct-icon--danger"><i class="fas fa-sign-out-alt"></i></span>
+                                    <span><strong>Sign Out</strong></span>
+                                </a>
+                            </div>
+                        </div>
+
+                        {% else %}
+                        <!-- ── Logged-out: Sign In (plain) + Sign Up (pill) ── -->
+                        <a href="{% url 'accounts:login' %}" class="rh-btn-signin">Sign In</a>
+                        <a href="{% url 'accounts:register' %}" class="rh-btn-signup">Sign Up</a>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </header>
+    <div class="clearfix"></div>
+
+    <!-- ══ DJANGO MESSAGES → SweetAlert2 toasts ══════════ -->
+    <script>
+    {% for message in messages %}
+        Swal.fire({
+            icon:               '{{ message.tags|escapejs }}',
+            title:              '{{ message|escapejs }}',
+            timer:              2500,
+            showConfirmButton:  false,
+            toast:              true,
+            position:           'top-end',
+            timerProgressBar:   true,
+        });
+    {% endfor %}
+    </script>
+
+    <!-- ══ PAGE CONTENT ══════════════════════════════════ -->
+    {% block content %}{% endblock %}
+
+    <!-- ══ RECENTLY VIEWED ══════════════════════════════════ -->
+    <div id="rh-recently-viewed" style="display:none;padding:20px 0;border-top:1px solid #f0f0f0;">
+      <div class="container">
+        <h5 style="color:#888;font-size:.85rem;margin-bottom:12px;">🕐 Recently Viewed</h5>
+        <div id="rh-rv-strip" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;"></div>
+      </div>
+    </div>
+    <script>
+    (function(){
+      var list=JSON.parse(sessionStorage.getItem('rh-viewed')||'[]');if(!list.length)return;
+      var wrap=document.getElementById('rh-recently-viewed');
+      var strip=document.getElementById('rh-rv-strip');
+      if(!wrap||!strip)return;
+      wrap.style.display='block';
+      list.forEach(function(h){
+        var a=document.createElement('a');a.href='/hotels/'+h.slug+'/';
+        a.style.cssText='flex-shrink:0;width:140px;background:#fff;border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;text-decoration:none;color:inherit;';
+        a.innerHTML='<div style="height:60px;background:#fce7f3;background-image:url('+h.img+');background-size:cover;"></div>'
+          +'<div style="padding:8px;"><div style="font-size:.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+h.name+'</div>'
+          +'<div style="font-size:.72rem;color:#888;">'+h.city+(h.price?' · $'+h.price+'/n':'')+'</div></div>';
+        strip.appendChild(a);
+      });
+    })();
+    </script>
+
+    <!-- ══ BIG CTA ════════════════════════════════════════ -->
+    <section class="rh-big-cta">
+        <div class="container" style="text-align:center;">
+            <h2 class="rh-big-cta-heading">Ready to Book Your Stay?</h2>
+            <br>
+            <a href="{% url 'rooms:hotel_listing' %}" class="rh-big-cta-btn">
+                Book Now
+            </a>
+        </div>
+    </section>
+
+    <!-- ══ FOOTER ═════════════════════════════════════════ -->
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+
+                <!-- Brand column -->
+                <div class="col-md-4 col-sm-6">
+                    <h4>
+                        <img src="{% static 'images/logo.png' %}" alt="Red HMS"
+                             style="height:28px;margin-right:8px;vertical-align:middle;"
+                             onerror="this.style.display='none'">
+                        Red HMS
+                    </h4>
+                    <p style="color:#bbb;line-height:1.9;font-size:.9rem;">
+                        A full-featured Hotel Management &amp; Booking System.<br>
+                        Final Year Project — Built with Django 4.2.<br>
+                        <span style="color:#888;font-size:.8rem;">
+                            🔒 Payments secured by Stripe
+                        </span>
+                    </p>
+                </div>
+
+                <!-- Navigate column -->
+                <div class="col-md-2 col-sm-3 col-xs-6">
+                    <h4>Navigate</h4>
+                    <ul class="social_footer_link">
+                        <li><a href="{% url 'rooms:index' %}">
+                            <i class="fa fa-home" style="width:16px;"></i> Home
+                        </a></li>
+                        <li><a href="{% url 'rooms:hotel_listing' %}">
+                            <i class="fa fa-hotel" style="width:16px;"></i> Hotels
+                        </a></li>
+                        <li><a href="{% url 'rooms:contact' %}">
+                            <i class="fa fa-envelope" style="width:16px;"></i> Contact Us
+                        </a></li>
+                        {% if user.is_authenticated %}
+                        <li><a href="{% url 'reports:dashboard' %}">
+                            <i class="fa fa-tachometer" style="width:16px;"></i> Dashboard
+                        </a></li>
+                        <li><a href="{% url 'guests:my_reservations' %}">
+                            <i class="fa fa-calendar" style="width:16px;"></i> My Bookings
+                        </a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <!-- My Account column -->
+                <div class="col-md-2 col-sm-3 col-xs-6">
+                    <h4>My Account</h4>
+                    <ul class="social_footer_link">
+                        {% if user.is_authenticated %}
+                        <li><a href="{% url 'accounts:profile' %}">
+                            <i class="fa fa-user" style="width:16px;"></i> Profile
+                        </a></li>
+                        <li><a href="{% url 'guests:wishlist' %}">
+                            <i class="fa fa-heart" style="width:16px;"></i> Wishlist
+                        </a></li>
+                        <li><a href="{% url 'reports:wallet' %}">
+                            <i class="fa fa-wallet" style="width:16px;"></i> Wallet
+                        </a></li>
+                        <li><a href="{% url 'accounts:logout' %}">
+                            <i class="fa fa-sign-out" style="width:16px;"></i> Logout
+                        </a></li>
+                        {% else %}
+                        <li><a href="{% url 'accounts:login' %}">
+                            <i class="fa fa-sign-in" style="width:16px;"></i> Sign In
+                        </a></li>
+                        <li><a href="{% url 'accounts:register' %}">
+                            <i class="fa fa-user-plus" style="width:16px;"></i> Register
+                        </a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <!-- Contact column -->
+                <div class="col-md-4 col-sm-6">
+                    <h4>Contact Us</h4>
+                    <ul class="social_footer_link">
+                        <li>
+                            <i class="fa fa-envelope-o" style="color:#1a1a1a;width:18px;"></i>
+                            <a href="mailto:support@redhms.com">support@redhms.com</a>
+                        </li>
+                        <li>
+                            <i class="fa fa-phone" style="color:#1a1a1a;width:18px;"></i>
+                            +1 (800) RED-HMS
+                        </li>
+                        <li>
+                            <i class="fa fa-map-marker" style="color:#1a1a1a;width:18px;"></i>
+                            123 Hotel Street, City, Country
+                        </li>
+                        <li>
+                            <i class="fa fa-clock-o" style="color:#1a1a1a;width:18px;"></i>
+                            Available 24/7
+                        </li>
+                    </ul>
+
+                    <!-- Social icons -->
+                    <div style="margin-top:12px;">
+                        <a href="#" style="color:#aaa;margin-right:12px;font-size:1.1rem;" title="Facebook">
+                            <i class="fa fa-facebook-square"></i>
+                        </a>
+                        <a href="#" style="color:#aaa;margin-right:12px;font-size:1.1rem;" title="Twitter">
+                            <i class="fa fa-twitter-square"></i>
+                        </a>
+                        <a href="#" style="color:#aaa;font-size:1.1rem;" title="Instagram">
+                            <i class="fa fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Copyright bar -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="footer_copyright_part">
+                        Copyright &copy; {% now "Y" %}
+                        <strong style="color:#1a1a1a;">Red HMS</strong>
+                        — Final Year Project. All Rights Reserved.
+                        &nbsp;|&nbsp;
+                        Built with <i class="fa fa-heart" style="color:#1a1a1a;"></i> using Django
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to top -->
+    <div id="bottom_backto_top"><a href="#"></a></div>
+
+</div><!-- /#main_wrapper -->
+
+<!-- ══ SCRIPTS (matching reference project exactly) ══════ -->
+{% load static %}
+<script src="{% static 'scripts/jquery-3_4_1_min.js' %}"></script>
+<script src="{% static 'scripts/chosen_min.js' %}"></script>
+<script src="{% static 'scripts/slick_min.js' %}"></script>
+<script src="{% static 'scripts/rangeslider_min.js' %}"></script>
+<script src="{% static 'scripts/magnific-popup_min.js' %}"></script>
+<script src="{% static 'scripts/jquery-ui_min.js' %}"></script>
+<script src="{% static 'scripts/bootstrap-select_min.js' %}"></script>
+<script src="{% static 'scripts/mmenu.js' %}"></script>
+<script src="{% static 'scripts/tooltips_min.js' %}"></script>
+<script src="{% static 'scripts/color_switcher.js' %}"></script>
+<script src="{% static 'scripts/jquery_custom.js' %}"></script>
+<script src="{% static 'scripts/typed.js' %}"></script>
+<script src="{% static 'scripts/infobox_min.js' %}"></script>
+<script src="{% static 'scripts/markerclusterer.js' %}"></script>
+<script src="{% static 'scripts/moment_min.js' %}"></script>
+<script src="{% static 'scripts/daterangepicker.js' %}"></script>
+<script src="{% static 'scripts/quantityButtons.js' %}"></script>
+<script src="{% static 'scripts/red_hms_custom.js' %}"></script>
+
+<script>
+/* ── Homepage date-range picker ─────────────────────────── */
+$(function () {
+    if ($('#booking-date-search').length) {
+        var start = moment();
+        var end   = moment().add(2, 'days');
+
+        function cb(s, e) {
+            $('#booking-date-search').html(
+                s.format('MMMM D, YYYY') + ' – ' + e.format('MMMM D, YYYY')
+            );
+        }
+        cb(start, end);
+
+        $('#booking-date-search').daterangepicker({
+            opens               : 'right',
+            autoUpdateInput     : true,
+            alwaysShowCalendars : true,
+            startDate           : start,
+            endDate             : end,
+            minDate             : moment(),
+        }, cb);
+
+        $('#booking-date-search').on('show.daterangepicker', function () {
+            $('.daterangepicker').addClass('calendar-visible');
+        });
+        $('#booking-date-search').on('hide.daterangepicker', function () {
+            $('.daterangepicker').removeClass('calendar-visible');
+        });
+
+        $(window).on('load', function () {
+            $('#booking-date-search').val('');
+        });
+    }
+});
+</script>
+
+{% block extra_js %}{% endblock %}
+
+<script>
+/* ── Account menu: click-toggle ── */
+$(function () {
+    var $menu    = $('.rh-account-menu');
+    var $trigger = $menu.find('.rh-account-trigger');
+
+    $trigger.on('click', function (e) {
+        e.stopPropagation();
+        $menu.toggleClass('open');
+    });
+
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('.rh-account-menu').length) {
+            $menu.removeClass('open');
+        }
+    });
+
+    $(document).on('keydown', function (e) {
+        if (e.key === 'Escape') { $menu.removeClass('open'); }
+    });
+});
+</script>
+
+<script>
+/* Render all Lucide SVG icons */
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+});
+</script>
+<style>
+.rh-reveal{opacity:0;transform:translateY(24px);transition:opacity .5s ease,transform .5s ease;}
+.rh-reveal.rh-visible{opacity:1;transform:translateY(0);}
+.utf_listing_item-container{transition:transform .25s ease,box-shadow .25s ease;}
+.utf_listing_item-container:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.12);}
+</style>
+<script>
+(function(){
+  var els=document.querySelectorAll(
+    'section,.container > .row,.utf_listing_item-container,.utf_dashboard_stat,.utf_dashboard_list_box,#footer .col-md-4,#footer .col-md-2');
+  els.forEach(function(el,i){el.classList.add('rh-reveal');el.style.transitionDelay=(i%6*0.08)+'s';});
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){e.target.classList.add('rh-visible');io.unobserve(e.target);}});
+  },{threshold:0.1});
+  els.forEach(function(el){io.observe(el);});
+  document.addEventListener('click',function(e){
+    var a=e.target.closest('a[href]');if(!a)return;
+    var href=a.getAttribute('href');
+    if(!href||href.startsWith('#')||href.startsWith('mailto:')||
+       href.startsWith('javascript:')||a.target==='_blank')return;
+    if(href.startsWith('http')&&!href.includes(window.location.host))return;
+    e.preventDefault();
+    var loader=document.getElementById('rh-p2p-loader');
+    if(loader)loader.classList.add('active');
+    setTimeout(function(){window.location=href;},666);
+  });
+  window.addEventListener('pageshow',function(){
+    var loader=document.getElementById('rh-p2p-loader');
+    if(loader)loader.classList.remove('active');
+  });
+})();
+</script>
+<script>
+(function(){
+  var saved=localStorage.getItem('rh-theme');
+  var prefersDark=window.matchMedia('(prefers-color-scheme:dark)').matches;
+  var theme=saved||(prefersDark?'dark':'light');
+  document.documentElement.setAttribute('data-theme',theme);
+  var btn=document.getElementById('theme-toggle');
+  function sync(){if(btn)btn.textContent=document.documentElement.getAttribute('data-theme')==='dark'?'☀️':'🌙';}
+  sync();
+  if(btn)btn.addEventListener('click',function(){
+    var next=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+    document.documentElement.setAttribute('data-theme',next);
+    localStorage.setItem('rh-theme',next);sync();
+  });
+})();
+</script>
+
+{% if user.is_authenticated %}
+<script>
+function refreshNotifBadge(){
+  fetch("{% url 'accounts:notification_count' %}").then(r=>r.json()).then(d=>{
+    var b=document.getElementById('nav-notif-badge');
+    if(d.count>0){b.textContent=d.count>99?'99+':d.count;b.style.display='flex';}
+    else b.style.display='none';
+  });
+}
+refreshNotifBadge(); setInterval(refreshNotifBadge,30000);
+</script>
+{% endif %}
+<script>
+/* Mobile menu overlay */
+(function(){
+    var burger = document.querySelector('.hamburger');
+    var menu   = document.getElementById('rh-mobile-menu');
+    var close  = document.getElementById('rh-menu-close');
+    if(burger && menu){
+        burger.addEventListener('click', function(){ menu.classList.add('open'); });
+    }
+    if(close && menu){
+        close.addEventListener('click', function(){ menu.classList.remove('open'); });
+    }
+})();
+</script>
+<script>
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        var el = document.getElementById('rh-preloader');
+        if (el) el.classList.add('rh-preloader-hidden');
+    }, 1500);
+});
+(function(){
+    var lastY = 0;
+    var header = document.getElementById('header_part');
+    window.addEventListener('scroll', function(){
+        if (!header) return;
+        var y = window.scrollY;
+        if (y > lastY && y > 80) header.classList.add('--hidden');
+        else header.classList.remove('--hidden');
+        lastY = y;
+        if (y > 80) header.classList.add('scrolled');
+        else header.classList.remove('scrolled');
+    });
+})();
+</script>
+</body>
+</html>

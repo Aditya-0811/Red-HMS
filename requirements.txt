@@ -1,0 +1,32 @@
+# ── Django core ─────────────────────────────────────
+Django>=5.2,<6.0
+gunicorn>=21.2.0
+whitenoise>=6.6.0
+
+# ── Database ─────────────────────────────────────────
+dj-database-url>=2.1.0
+psycopg2-binary>=2.9.9
+
+# ── Media / Storage ──────────────────────────────────
+Pillow>=10.0.0
+django-storages>=1.14.2
+boto3>=1.34.0
+
+# ── Django apps ──────────────────────────────────────
+shortuuid>=1.0.11
+django-jazzmin>=2.6.0
+django-import-export>=3.3.1
+django-crispy-forms>=2.1
+crispy-bootstrap5>=0.7
+django-mathfilters>=1.0.0
+django-ckeditor-5>=0.2.11
+django-taggit>=4.0.0
+
+# ── Payments ─────────────────────────────────────────
+stripe>=7.0.0
+
+# ── Environment variables ────────────────────────────
+environs>=9.5.0
+
+# ── Security ─────────────────────────────────────────
+django-environ>=0.11.2

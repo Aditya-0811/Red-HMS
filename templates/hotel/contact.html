@@ -1,0 +1,139 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block title %}Contact Us – Red HMS{% endblock %}
+
+{% block content %}
+<div id="titlebar">
+    <div class="container">
+        <div class="row"><div class="col-md-12">
+            <h2>Contact Us</h2>
+            <nav id="breadcrumbs"><ul>
+                <li><a href="{% url 'rooms:index' %}">Home</a></li>
+                <li>Contact Us</li>
+            </ul></nav>
+        </div></div>
+    </div>
+</div>
+
+<div class="container margin-top-50 margin-bottom-60">
+    <div class="row">
+
+        <!-- Contact Info -->
+        <div class="col-md-4 col-sm-12" style="margin-bottom:30px;">
+            <h4 style="font-weight:700;margin-bottom:20px;">Get in Touch</h4>
+
+            <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:22px;">
+                <div style="width:42px;height:42px;border-radius:10px;background:var(--brand-xlight);
+                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="fas fa-map-marker-alt" style="color:var(--brand);font-size:1.1rem;"></i>
+                </div>
+                <div>
+                    <strong style="display:block;font-size:.9rem;color:var(--t1);">Address</strong>
+                    <span style="font-size:.87rem;color:var(--t2);">123 Hotel Street, City, Country</span>
+                </div>
+            </div>
+
+            <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:22px;">
+                <div style="width:42px;height:42px;border-radius:10px;background:var(--brand-xlight);
+                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="fas fa-phone" style="color:var(--brand);font-size:1.1rem;"></i>
+                </div>
+                <div>
+                    <strong style="display:block;font-size:.9rem;color:var(--t1);">Phone</strong>
+                    <span style="font-size:.87rem;color:var(--t2);">+1 (800) RED-HMS</span>
+                </div>
+            </div>
+
+            <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:22px;">
+                <div style="width:42px;height:42px;border-radius:10px;background:var(--brand-xlight);
+                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="fas fa-envelope" style="color:var(--brand);font-size:1.1rem;"></i>
+                </div>
+                <div>
+                    <strong style="display:block;font-size:.9rem;color:var(--t1);">Email</strong>
+                    <span style="font-size:.87rem;color:var(--t2);">support@redhms.com</span>
+                </div>
+            </div>
+
+            <div style="display:flex;align-items:flex-start;gap:14px;">
+                <div style="width:42px;height:42px;border-radius:10px;background:var(--brand-xlight);
+                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="fas fa-clock" style="color:var(--brand);font-size:1.1rem;"></i>
+                </div>
+                <div>
+                    <strong style="display:block;font-size:.9rem;color:var(--t1);">Hours</strong>
+                    <span style="font-size:.87rem;color:var(--t2);">Available 24 / 7</span>
+                </div>
+            </div>
+
+            <!-- Map -->
+            <div style="margin-top:28px;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);">
+                <iframe
+                    width="100%" height="220" frameborder="0" style="border:0;display:block;"
+                    loading="lazy" allowfullscreen
+                    src="https://www.google.com/maps?q=123+Hotel+Street&output=embed">
+                </iframe>
+            </div>
+        </div>
+
+        <!-- Contact Form -->
+        <div class="col-md-8 col-sm-12">
+            <div class="utf_dashboard_list_box" style="border-radius:16px;padding:0;overflow:hidden;">
+                <h4 style="padding:18px 24px;margin:0;border-bottom:1.5px solid var(--border);
+                            background:var(--surface-2);font-size:.95rem;">
+                    <i class="fas fa-paper-plane" style="color:var(--brand);margin-right:8px;"></i>
+                    Send Us a Message
+                </h4>
+
+                {% if sent %}
+                <div style="padding:32px 24px;text-align:center;">
+                    <i class="fas fa-check-circle" style="font-size:3rem;color:#34c759;display:block;margin-bottom:16px;"></i>
+                    <h4 style="font-weight:700;color:var(--t1);margin-bottom:8px;">Message Sent!</h4>
+                    <p style="color:var(--t2);">Thanks for reaching out. We'll get back to you within 24 hours.</p>
+                    <a href="{% url 'rooms:contact' %}" class="button margin-top-15" style="display:inline-flex;">Send Another</a>
+                </div>
+                {% else %}
+                <form method="POST" style="padding:28px 24px;">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label>Your Name *</label>
+                            <input type="text" name="name" placeholder="John Doe" required
+                                   value="{{ form_data.name|default:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label>Email Address *</label>
+                            <input type="email" name="email" placeholder="you@example.com" required
+                                   value="{{ form_data.email|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label>Phone</label>
+                            <input type="tel" name="phone" placeholder="+1 234 567 8900"
+                                   value="{{ form_data.phone|default:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label>Subject *</label>
+                            <select name="subject">
+                                <option value="General Inquiry">General Inquiry</option>
+                                <option value="Booking Support">Booking Support</option>
+                                <option value="Cancellation">Cancellation</option>
+                                <option value="Feedback">Feedback</option>
+                                <option value="Partnership">Partnership</option>
+                            </select>
+                        </div>
+                    </div>
+                    <label>Message *</label>
+                    <textarea name="message" rows="6" placeholder="Write your message here…" required>{{ form_data.message|default:'' }}</textarea>
+                    <button type="submit" class="button" style="margin-top:4px;">
+                        <i class="fas fa-paper-plane"></i> Send Message
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

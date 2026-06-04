@@ -1,0 +1,356 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block title %}Red HMS – Book Your Perfect Stay{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero-section {
+    position        : relative;
+    min-height      : 100vh;
+    display         : flex;
+    align-items     : center;
+    overflow        : hidden;
+}
+.hero-bg-slider,
+.hero-bg-slide {
+    position: absolute;
+    inset   : 0;
+    width   : 100%;
+    height  : 100%;
+}
+.hero-bg-slide {
+    background-size      : cover;
+    background-position  : center;
+    background-attachment: fixed;
+}
+.hero-overlay {
+    position  : absolute;
+    inset     : 0;
+    background: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35));
+    z-index   : 1;
+}
+.hero-content {
+    position  : relative;
+    z-index   : 2;
+    width     : 100%;
+    padding   : 0 0 60px;
+    display   : flex;
+    align-items: center;
+    min-height : 100vh;
+}
+.hero-title {
+    font-family: 'Syne', sans-serif !important;
+    color      : #fff !important;
+    font-size  : clamp(2.5rem, 6vw, 5rem) !important;
+    font-weight: 800 !important;
+    margin-bottom: 16px !important;
+    line-height: 1.1 !important;
+}
+.hero-sub {
+    color      : rgba(255,255,255,.85) !important;
+    font-size  : 1.1rem !important;
+    font-weight: 400 !important;
+    margin     : 0 0 2rem !important;
+}
+.hero-search-card {
+    background   : #fff;
+    border-radius: 16px;
+    padding      : 8px;
+    box-shadow   : 0 8px 40px rgba(0,0,0,.18);
+}
+/* slick fix — make the slider fill the parent */
+.hero-bg-slider .slick-list,
+.hero-bg-slider .slick-track,
+.hero-bg-slider .slick-slide,
+.hero-bg-slider .slick-slide > div { height: 100% !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ══ VIDEO HERO (U7) ══ -->
+<section class="rh-video-hero">
+    <div class="rh-video-loader" id="rh-vid-loader">
+        <div class="rh-spinner"></div>
+    </div>
+    <video id="rh-hero-vid" autoplay muted loop playsinline
+        poster="{% static 'Stock Images/Bellagio-Hotel-Casino-Las-Vegas.webp' %}">
+        <source src="{% static 'videos/hero.mp4' %}" type="video/mp4">
+    </video>
+    <div class="rh-video-overlay">
+        <h1>Book Your Perfect Stay</h1>
+        <p>Discover top hotels with Red HMS</p>
+    </div>
+</section>
+
+<!-- ══ HERO — sliding background ══ -->
+<div class="hero-section">
+
+    <!-- Sliding bg images (slick) -->
+    <div class="hero-bg-slider">
+        {% for h in hotels %}{% if h.image %}
+        <div class="hero-bg-slide" style="background-image:url('{{ h.image.url }}');"></div>
+        {% endif %}{% endfor %}
+        <div class="hero-bg-slide" style="background-image:url('{% static "Stock Images/Bellagio-Hotel-Casino-Las-Vegas.webp" %}');"></div>
+        <div class="hero-bg-slide" style="background-image:url('{% static "Stock Images/jw-marriott-hotel-mumbai.jpg" %}');"></div>
+        <div class="hero-bg-slide" style="background-image:url('{% static "Stock Images/art-hotel-lagos-1424x802.jpg" %}');"></div>
+        <div class="hero-bg-slide" style="background-image:url('{% static "Stock Images/welcome_hotel_marburg_lobby_2k.2560x1600.jpg" %}');"></div>
+        <div class="hero-bg-slide" style="background-image:url('{% static "Stock Images/Houghton-Hotel-3-20-scaled.jpg" %}');"></div>
+        <div class="hero-bg-slide" style="background-image:url('{% static "Stock Images/Liseberg_HotelCuriosa_600x600_MINT_CMSTemplate.jpg" %}');"></div>
+    </div>
+
+    <!-- Dark pink overlay -->
+    <div class="hero-overlay"></div>
+
+    <!-- Content -->
+    <div class="hero-content">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-10 col-md-offset-1" style="text-align:center;">
+                    <h1 class="hero-title rh-hero-title">
+                        <span>Book</span> <span>Your</span>
+                        <span>Perfect</span> <span>Stay</span>
+                    </h1>
+                    <p class="hero-sub">Discover and reserve top hotels with Red HMS</p>
+
+                    <div class="hero-search-card">
+                        <form method="GET" action="{% url 'rooms:hotel_listing' %}">
+                            <div class="main_input_search_part">
+                                <div class="main_input_search_part_item">
+                                    <input type="text" name="q" placeholder="Hotel name or city…">
+                                </div>
+                                <div class="main_input_search_part_item main-search-input-item search-input-icon">
+                                    <input type="text" name="dates" placeholder="Select Booking Dates" id="booking-date-search">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <div class="main_input_search_part_item intro-search-field">
+                                    <select name="type" class="selectpicker default" title="Room Type">
+                                        <option value="">All Room Types</option>
+                                        <option value="Single">Single</option>
+                                        <option value="Double">Double</option>
+                                        <option value="Twin">Twin</option>
+                                        <option value="King">King</option>
+                                        <option value="Suite">Suite</option>
+                                        <option value="Deluxe">Deluxe</option>
+                                        <option value="Penthouse">Penthouse</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="button">
+                                    <i class="fa fa-search"></i> Search
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ STATS BAR ══ -->
+<div class="stats-bar">
+    <div class="container">
+        <div class="row" style="text-align:center;">
+            <div class="col-md-3 col-sm-6" style="padding:8px 0;">
+                <i class="fa fa-building" style="color:rgba(255,255,255,.85);font-size:1.5rem;display:block;margin-bottom:6px;"></i>
+                <h3 style="margin:0;font-weight:800;color:#fff;font-size:1.8rem;letter-spacing:-0.03em;">
+                    {{ hotels.count }}+
+                </h3>
+                <small style="color:rgba(255,255,255,.75);font-size:.82rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Hotels</small>
+            </div>
+            <div class="col-md-3 col-sm-6" style="padding:8px 0;">
+                <i class="fa fa-users" style="color:rgba(255,255,255,.85);font-size:1.5rem;display:block;margin-bottom:6px;"></i>
+                <h3 style="margin:0;font-weight:800;color:#fff;font-size:1.8rem;letter-spacing:-0.03em;">500+</h3>
+                <small style="color:rgba(255,255,255,.75);font-size:.82rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Happy Guests</small>
+            </div>
+            <div class="col-md-3 col-sm-6" style="padding:8px 0;">
+                <i class="fa fa-bed" style="color:rgba(255,255,255,.85);font-size:1.5rem;display:block;margin-bottom:6px;"></i>
+                <h3 style="margin:0;font-weight:800;color:#fff;font-size:1.8rem;letter-spacing:-0.03em;">150+</h3>
+                <small style="color:rgba(255,255,255,.75);font-size:.82rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Room Types</small>
+            </div>
+            <div class="col-md-3 col-sm-6" style="padding:8px 0;">
+                <i class="fa fa-headset" style="color:rgba(255,255,255,.85);font-size:1.5rem;display:block;margin-bottom:6px;"></i>
+                <h3 style="margin:0;font-weight:800;color:#fff;font-size:1.8rem;letter-spacing:-0.03em;">24/7</h3>
+                <small style="color:rgba(255,255,255,.75);font-size:.82rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Support</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ HOTEL LISTINGS ══ -->
+<section class="fullwidth_block margin-top-65 padding-top-75 padding-bottom-70" data-background-color="#f9f9f9" style="position:relative;">
+    <div class="rh-section-label rh-section-label--left" data-label="Our Hotels"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h3 class="headline_part centered margin-bottom-45">
+                    Our Featured Hotels
+                    <span>Explore the finest properties available</span>
+                </h3>
+            </div>
+        </div>
+
+        <div class="row">
+            {% for h in hotels %}
+            <div class="col-lg-4 col-md-6">
+                <a href="{% url 'rooms:hotel_detail' h.slug %}" class="utf_listing_item-container compact">
+                    <div class="utf_listing_item">
+                        {% if h.image %}
+                            <img src="{{ h.image.url }}" alt="{{ h.name }}"
+                                 style="width:100%;height:220px;object-fit:cover;">
+                        {% else %}
+                            <div style="width:100%;height:220px;background:#e5e5e5;display:flex;
+                                        align-items:center;justify-content:center;">
+                                <i class="fas fa-hotel fa-3x" style="color:#1a1a1a;"></i>
+                            </div>
+                        {% endif %}
+                        {% if h.featured %}<span class="featured_tag">Featured</span>{% endif %}
+                        <span class="utf_open_now">Available</span>
+                        <div class="utf_listing_item_content">
+                            <div class="utf_listing_prige_block">
+                                {% with rt=h.hotel_room_types.first %}
+                                {% if rt %}
+                                <span class="utf_meta_listing_price">
+                                    <i class="fa fa-tag"></i> From ${{ rt.price }}/night
+                                </span>
+                                {% endif %}
+                                {% endwith %}
+                            </div>
+                            <h3>{{ h.name|truncatechars:28 }}</h3>
+                            <span><i class="fas fa-location-arrow"></i> {{ h.address }}</span>
+                            <span><i class="fas fa-phone"></i> {{ h.mobile }}</span>
+                        </div>
+                    </div>
+                    <div class="utf_star_rating_section" data-rating="{{ h.average_rating }}">
+                        <div class="utf_counter_star_rating">
+                            {% if h.average_rating %}
+                                {{ h.average_rating }}/5
+                            {% else %}
+                                No ratings yet
+                            {% endif %}
+                        </div>
+                        <span class="utf_view_count"><i class="fa fa-eye"></i> {{ h.views }}</span>
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'guests:toggle_bookmark' h.slug %}"
+                           class="like-icon"
+                           onclick="event.preventDefault(); window.location='{% url 'guests:toggle_bookmark' h.slug %}';"
+                           title="Save to wishlist">
+                        </a>
+                        {% endif %}
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="col-md-12" style="text-align:center;padding:60px 0;">
+                <i class="fas fa-hotel fa-4x" style="color:#ddd;margin-bottom:20px;display:block;"></i>
+                <p style="color:#aaa;font-size:1.1rem;">No hotels available yet. Check back soon!</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if hotels.count > 6 %}
+        <div style="text-align:center;margin-top:40px;">
+            <a href="{% url 'rooms:hotel_listing' %}" class="button">
+                View All Hotels <i class="fa fa-arrow-right"></i>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- ══ WHY CHOOSE US ══ -->
+<section style="background:var(--surface);padding:80px 0;">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12" style="text-align:center;margin-bottom:52px;">
+                <h2 style="font-size:2rem;font-weight:800;letter-spacing:-0.03em;color:var(--t1);margin:0 0 10px;">
+                    Why choose Red HMS?
+                </h2>
+                <p style="font-size:1.05rem;color:var(--t2);max-width:480px;margin:0 auto;">
+                    Everything you need for the perfect stay, all in one place.
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 col-sm-6" style="text-align:center;padding:16px 24px;">
+                <div class="feature-icon-wrap">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h5 style="font-weight:700;font-size:.97rem;color:var(--t1);margin:0 0 8px;">Secure Booking</h5>
+                <p style="font-size:.87rem;color:var(--t2);line-height:1.65;margin:0;">
+                    SSL-encrypted payments via Stripe. Your data is always safe.
+                </p>
+            </div>
+            <div class="col-md-3 col-sm-6" style="text-align:center;padding:16px 24px;">
+                <div class="feature-icon-wrap">
+                    <i class="fas fa-tags"></i>
+                </div>
+                <h5 style="font-weight:700;font-size:.97rem;color:var(--t1);margin:0 0 8px;">Best Prices</h5>
+                <p style="font-size:.87rem;color:var(--t2);line-height:1.65;margin:0;">
+                    Coupon codes &amp; discounts available on every booking.
+                </p>
+            </div>
+            <div class="col-md-3 col-sm-6" style="text-align:center;padding:16px 24px;">
+                <div class="feature-icon-wrap">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <h5 style="font-weight:700;font-size:.97rem;color:var(--t1);margin:0 0 8px;">24/7 Support</h5>
+                <p style="font-size:.87rem;color:var(--t2);line-height:1.65;margin:0;">
+                    Our team is always available to assist you around the clock.
+                </p>
+            </div>
+            <div class="col-md-3 col-sm-6" style="text-align:center;padding:16px 24px;">
+                <div class="feature-icon-wrap">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h5 style="font-weight:700;font-size:.97rem;color:var(--t1);margin:0 0 8px;">Top Rated</h5>
+                <p style="font-size:.87rem;color:var(--t2);line-height:1.65;margin:0;">
+                    Verified guest reviews on every property we list.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+    var vid = document.getElementById('rh-hero-vid');
+    var loader = document.getElementById('rh-vid-loader');
+    if(vid && loader){
+        function hideLoader(){ loader.classList.add('hidden'); }
+        vid.addEventListener('canplay', hideLoader);
+        vid.addEventListener('error',   hideLoader);
+        // Fallback: hide after 3 s even if the video never responds
+        setTimeout(hideLoader, 3000);
+    }
+})();
+</script>
+<script>
+// Hero background slider — init after all scripts are ready
+$(window).on('load', function () {
+    if ($('.hero-bg-slider').length && !$('.hero-bg-slider').hasClass('slick-initialized')) {
+        $('.hero-bg-slider').slick({
+            autoplay        : true,
+            autoplaySpeed   : 4500,
+            speed           : 1200,
+            fade            : true,
+            cssEase         : 'ease-in-out',
+            arrows          : false,
+            dots            : false,
+            pauseOnHover    : false,
+        });
+    }
+});
+
+// Animate stat numbers on scroll
+$(window).on('scroll', function(){
+    $('.utf_listing_item-container').each(function(){
+        var pos = $(this).offset().top - $(window).height() + 80;
+        if($(window).scrollTop() > pos){ $(this).addClass('visible'); }
+    });
+});
+</script>
+{% endblock %}

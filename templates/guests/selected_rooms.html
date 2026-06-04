@@ -1,0 +1,181 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block title %}Selected Rooms – Red HMS{% endblock %}
+
+{% block content %}
+
+<div id="titlebar">
+    <div class="container"><div class="row"><div class="col-md-12">
+        <h2>My Room Selection</h2>
+        <nav id="breadcrumbs"><ul>
+            <li><a href="{% url 'rooms:index' %}">Home</a></li>
+            <li>Selected Rooms</li>
+        </ul></nav>
+    </div></div></div>
+</div>
+
+<div class="container margin-bottom-75 selection-list">
+    <div class="row">
+        {% if data %}
+
+        <!-- LEFT: Room list (AJAX-updatable div) -->
+        <div class="col-lg-8 col-md-8 utf_listing_payment_section">
+            <div class="notification warning closeable margin-bottom-20">
+                <p><span>NOTE!</span> Review your selection before checkout.</p>
+                <a class="close" href="#"></a>
+            </div>
+
+            <!-- The async-updatable inner div matches reference exactly -->
+            <div class="utf_booking_listing_section_form margin-bottom-35">
+                <h3><i class="fas fa-bed"></i> Selected Rooms ({{ total_selected_items }})</h3>
+                <div class="utf_listing_section">
+                    <div class="utf_pricing_list_section">
+                        <ul>
+                            {% for id, item in data.items %}
+                            <li>
+                                <h5>
+                                    {{ item.room_name }}
+                                    <small>
+                                        <a style="cursor:pointer;" class="delete-item" data-item="{{ id }}">
+                                            <i class="fas fa-trash" style="color:#e74c3c;"></i>
+                                        </a>
+                                    </small>
+                                </h5>
+                                <p><strong>Beds:</strong> {{ item.number_of_beds }}</p>
+                                <p>
+                                    <i class="fa fa-calendar-check-o"></i>
+                                    <strong>{{ item.checkin }}</strong> → <strong>{{ item.checkout }}</strong>
+                                    &nbsp;|&nbsp;
+                                    <i class="fa fa-users"></i> {{ item.adult }} Adult(s), {{ item.children }} Child(ren)
+                                </p>
+                                <span>${{ item.room_price }}/night</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Update Selection / Date Form -->
+            <div class="utf_booking_listing_section_form margin-bottom-35">
+                <h3><i class="fas fa-check-circle"></i> Update Selection</h3>
+                <div class="utf_listing_section">
+                    <div class="utf_pricing_list_section">
+                        <form class="row with-forms margin-top-0" method="GET"
+                              action="{% url 'rooms:hotel_detail' hotel.slug %}">
+                            <input type="hidden" value="{{ hotel.id }}" name="hotel-id">
+                            <div class="col-lg-12 col-md-12 select_date_box">
+                                <label>Check-in Date</label>
+                                <input type="date" name="checkin" value="{{ checkin }}" placeholder="Check-in">
+                            </div>
+                            <div class="col-lg-12 col-md-12 select_date_box">
+                                <label>Check-out Date</label>
+                                <input type="date" name="checkout" value="{{ checkout }}" placeholder="Check-out">
+                            </div>
+                            <div class="with-forms">
+                                <div class="col-lg-12 col-md-12">
+                                    <a href="#">Guests <span class="qtyTotal" name="qtyTotal"></span></a>
+                                    <div class="panel-dropdown-content">
+                                        <div class="qtyButtons">
+                                            <div class="qtyTitle">Adults</div>
+                                            <input type="text" name="adult"
+                                                   value="{% if adult %}{{ adult }}{% else %}1{% endif %}">
+                                        </div>
+                                        <div class="qtyButtons">
+                                            <div class="qtyTitle">Children</div>
+                                            <input type="text" name="children"
+                                                   value="{% if children %}{{ children }}{% else %}0{% endif %}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="button fullwidth_block margin-top-10">
+                                <i class="fas fa-check-circle"></i> Update Selection
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Billing Info + Checkout form -->
+            <form class="utf_booking_listing_section_form margin-bottom-40"
+                  method="POST" action="{% url 'guests:selected_rooms' %}">
+                {% csrf_token %}
+                <h3><i class="fas fa-user"></i> Billing Information</h3>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>Full Name</label>
+                        <input name="full_name" type="text"
+                               value="{% if request.user.is_authenticated %}{{ request.user.profile.full_name|default:request.user.username }}{% endif %}"
+                               placeholder="Full Name" required>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="medium-icons">
+                            <label>Email</label>
+                            <input name="email" type="email"
+                                   value="{% if request.user.is_authenticated %}{{ request.user.email }}{% endif %}"
+                                   placeholder="Email" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="medium-icons">
+                            <label>Phone</label>
+                            <input name="phone" type="text"
+                                   value="{% if request.user.is_authenticated %}{{ request.user.profile.phone|default:'' }}{% endif %}"
+                                   placeholder="Phone">
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="button utf_progress_button fullwidth_block margin-top-20">
+                    <i class="fas fa-lock"></i> Confirm &amp; Proceed to Payment
+                </button>
+            </form>
+        </div>
+
+        <!-- RIGHT: Order summary sidebar -->
+        <div class="col-lg-4 col-md-4 margin-top-0 utf_listing_payment_section">
+            {% if hotel %}
+            <div class="utf_booking_listing_item_container compact utf_order_summary_widget_section margin-bottom-20">
+                <div class="listing-item">
+                    {% if hotel.image %}
+                    <img src="{{ hotel.image.url }}" alt="{{ hotel.name }}"
+                         style="width:100%;height:160px;object-fit:cover;">
+                    {% endif %}
+                    <div class="utf_listing_item_content">
+                        <h3>{{ hotel.name }}</h3>
+                        <span><i class="fa fa-map-marker"></i> {{ hotel.address }}</span>
+                        <span><i class="fa fa-phone"></i> {{ hotel.mobile }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="boxed-widget opening-hours summary">
+                <h3><i class="fa fa-calendar-check-o"></i> Summary</h3>
+                <ul>
+                    <li>Check-in  <span>{{ checkin }}</span></li>
+                    <li>Check-out <span>{{ checkout }}</span></li>
+                    <li>Nights    <span>{{ total_days }}</span></li>
+                    <li>Adults    <span>{{ adult }}</span></li>
+                    <li>Children  <span>{{ children }}</span></li>
+                    <li class="total-costs">
+                        Total <span style="color:#1a1a1a;font-weight:700;">${{ total }}</span>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+        {% else %}
+        <div class="col-md-12" style="text-align:center;padding:80px 0;">
+            <i class="fa fa-shopping-cart fa-4x" style="color:#ddd;display:block;margin-bottom:20px;"></i>
+            <h3 style="color:#aaa;">Your selection is empty</h3>
+            <p style="color:#bbb;">Browse hotels and add rooms to get started.</p>
+            <a href="{% url 'rooms:hotel_listing' %}" class="button margin-top-15">
+                <i class="fa fa-search"></i> Browse Hotels
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

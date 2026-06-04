@@ -1,0 +1,21 @@
+Red HMS – Booking Confirmation
+==============================
+
+Dear {{ full_name }},
+
+Your booking at {{ reservation.hotel.name }} is CONFIRMED.
+
+Booking ID  : #{{ reservation.booking_id }}
+Hotel       : {{ reservation.hotel.name }}
+Room Type   : {{ reservation.room_type.type }}
+Check-In    : {{ reservation.check_in_date }}
+Check-Out   : {{ reservation.check_out_date }}
+Nights      : {{ reservation.total_days }}
+Adults      : {{ reservation.num_adults }}
+Children    : {{ reservation.num_children }}
+Total Paid  : ${{ reservation.total }}
+
+We look forward to welcoming you!
+
+– The Red HMS Team
+support@redhms.com

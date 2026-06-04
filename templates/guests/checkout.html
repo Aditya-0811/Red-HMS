@@ -1,0 +1,113 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block title %}Checkout – Red HMS{% endblock %}
+
+{% block content %}
+
+<div id="titlebar">
+    <div class="container"><div class="row"><div class="col-md-12">
+        <h2>Checkout</h2>
+        <nav id="breadcrumbs"><ul>
+            <li><a href="{% url 'rooms:index' %}">Home</a></li>
+            <li><a href="{% url 'guests:selected_rooms' %}">Selection</a></li>
+            <li>Checkout</li>
+        </ul></nav>
+    </div></div></div>
+</div>
+
+<div class="container margin-bottom-75">
+    <div class="row">
+
+        <!-- Left: Billing Form -->
+        <div class="col-lg-8 col-md-8 utf_listing_payment_section">
+            <div class="notification warning closeable margin-bottom-20">
+                <p><span>NOTE!</span> Please fill in your billing details to complete the booking.</p>
+                <a class="close" href="#"></a>
+            </div>
+
+            <form method="POST" class="utf_booking_listing_section_form margin-bottom-40">
+                {% csrf_token %}
+                <h3><i class="fas fa-user"></i> Billing Information</h3>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>Full Name *</label>
+                        <input name="full_name" type="text"
+                               value="{% if user.is_authenticated %}{{ user_profile.full_name|default:user.username }}{% endif %}"
+                               placeholder="Enter your full name" required>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="medium-icons">
+                            <label>Email Address *</label>
+                            <input name="email" type="email"
+                                   value="{% if user.is_authenticated %}{{ user.email }}{% endif %}"
+                                   placeholder="your@email.com" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="medium-icons">
+                            <label>Phone Number</label>
+                            <input name="phone" type="text"
+                                   value="{% if user.is_authenticated %}{{ user_profile.phone|default:'' }}{% endif %}"
+                                   placeholder="+1 234 567 8900">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Room Summary inline -->
+                <h3 class="margin-top-35"><i class="fas fa-bed"></i> Rooms Being Booked</h3>
+                <div class="utf_listing_section">
+                    <div class="utf_pricing_list_section">
+                        <ul>
+                            {% for item in rooms_data %}
+                            <li>
+                                <h5>Room {{ item.room.room_number }} – {{ item.room.room_type.type }}</h5>
+                                <p>
+                                    <i class="fa fa-calendar"></i>
+                                    {{ item.checkin }} → {{ item.checkout }}
+                                    ({{ item.days }} night(s))
+                                </p>
+                                <span>${{ item.subtotal }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <button type="submit" class="button utf_progress_button fullwidth_block margin-top-30">
+                    <i class="fa fa-lock"></i> Confirm &amp; Proceed to Payment
+                </button>
+            </form>
+        </div>
+
+        <!-- Right: Summary Sidebar -->
+        <div class="col-lg-4 col-md-4 margin-top-0 utf_listing_payment_section">
+            <div class="boxed-widget opening-hours summary margin-bottom-35">
+                <h3><i class="fa fa-calendar-check-o"></i> Booking Summary</h3>
+                <ul>
+                    {% for item in rooms_data %}
+                    <li>
+                        {{ item.room.room_type.type }} × {{ item.days }}n
+                        <span>${{ item.subtotal }}</span>
+                    </li>
+                    {% endfor %}
+                    <li>VAT <span>$0.00</span></li>
+                    <li class="total-costs">
+                        Total
+                        <span style="color:#1a1a1a;font-weight:700;">${{ total }}</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="utf_box_widget_item">
+                <h3><i class="sl sl-icon-shield"></i> Secure Checkout</h3>
+                <ul class="utf_box_widget_contacts_list">
+                    <li><i class="fa fa-lock" style="color:#27ae60;"></i> SSL Encrypted Payment</li>
+                    <li><i class="fa fa-cc-stripe" style="color:#1a1a1a;"></i> Powered by Stripe</li>
+                    <li><i class="fa fa-shield" style="color:#2980b9;"></i> Your data is safe</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

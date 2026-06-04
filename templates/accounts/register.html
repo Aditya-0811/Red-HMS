@@ -1,0 +1,155 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block title %}Create Account – Red HMS{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { background: var(--bg); }
+  .auth-page {
+      min-height : calc(100vh - 68px);
+      display    : flex;
+      align-items: center;
+      justify-content: center;
+      padding    : 48px 16px 64px;
+  }
+  .auth-card {
+      width         : 100%;
+      max-width     : 500px;
+      background    : var(--surface);
+      border        : 1.5px solid var(--border);
+      border-radius : 20px;
+      box-shadow    : 0 8px 40px rgba(0,0,0,.11);
+      padding       : 44px 40px 40px;
+  }
+  .auth-logo {
+      width         : 54px;
+      height        : 54px;
+      background    : var(--brand-xlight);
+      border-radius : 16px;
+      display       : flex;
+      align-items   : center;
+      justify-content: center;
+      margin        : 0 auto 20px;
+  }
+  .auth-logo i { font-size: 1.5rem; color: var(--brand); }
+  .auth-card h2 {
+      text-align    : center;
+      font-size     : 1.55rem;
+      font-weight   : 800;
+      letter-spacing: -0.03em;
+      margin        : 0 0 6px;
+      color         : var(--t1);
+  }
+  .auth-card .auth-sub {
+      text-align: center;
+      color     : var(--t2);
+      font-size : .9rem;
+      margin    : 0 0 28px;
+  }
+  .auth-card label {
+      font-size     : .77rem !important;
+      font-weight   : 600 !important;
+      color         : var(--t2) !important;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      margin-bottom : 6px !important;
+      display       : block;
+  }
+  .auth-card input {
+      border-radius : 10px !important;
+      padding       : 12px 14px !important;
+      font-size     : .93rem !important;
+      background    : var(--surface) !important;
+      border        : 1.5px solid var(--border-med) !important;
+      box-shadow    : 0 1px 3px rgba(0,0,0,0.05) !important;
+      margin-bottom : 14px !important;
+      width         : 100% !important;
+  }
+  .auth-card input:focus {
+      border-color: var(--brand) !important;
+      box-shadow  : 0 0 0 4px rgba(0,0,0,.10) !important;
+  }
+  .field-error {
+      color      : #ff3b30;
+      font-size  : .8rem;
+      margin-top : -10px;
+      margin-bottom: 12px;
+      display    : flex;
+      align-items: center;
+      gap        : 5px;
+  }
+  .auth-card input[type="submit"] {
+      background    : var(--brand) !important;
+      color         : #fff !important;
+      border-color  : var(--brand) !important;
+      padding       : 13px !important;
+      font-size     : .95rem !important;
+      font-weight   : 700 !important;
+      border-radius : 10px !important;
+      margin-top    : 8px;
+      cursor        : pointer;
+      letter-spacing: -0.01em;
+      transition    : background .18s, transform .12s;
+  }
+  .auth-card input[type="submit"]:hover {
+      background : var(--brand-dark) !important;
+      transform  : translateY(-1px);
+  }
+  .auth-footer {
+      text-align: center;
+      margin-top: 22px;
+      font-size : .88rem;
+      color     : var(--t2);
+  }
+  .auth-footer a { color: var(--brand); font-weight: 700; }
+  @media (max-width:480px) {
+      .auth-card { padding: 32px 22px 28px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <i class="fas fa-user-plus"></i>
+    </div>
+
+    <h2>Create your account</h2>
+    <p class="auth-sub">Join Red HMS — it's free</p>
+
+    <form method="POST" autocomplete="on">
+      {% csrf_token %}
+      {% for field in form %}
+      <div>
+        <label>
+          {% if field.html_name == 'username' %}<i class="fa fa-user" style="margin-right:5px;opacity:.6;"></i>
+          {% elif field.html_name == 'email' %}<i class="fa fa-envelope" style="margin-right:5px;opacity:.6;"></i>
+          {% elif field.html_name == 'phone' or field.html_name == 'phone_number' %}<i class="fa fa-phone" style="margin-right:5px;opacity:.6;"></i>
+          {% elif field.html_name == 'password1' or field.html_name == 'password' %}<i class="fa fa-lock" style="margin-right:5px;opacity:.6;"></i>
+          {% elif field.html_name == 'password2' %}<i class="fa fa-lock" style="margin-right:5px;opacity:.6;"></i>
+          {% elif field.html_name == 'first_name' or field.html_name == 'last_name' or field.html_name == 'full_name' %}<i class="fa fa-id-card" style="margin-right:5px;opacity:.6;"></i>
+          {% endif %}
+          {{ field.label }}
+        </label>
+        {{ field }}
+        {% for error in field.errors %}
+          <p class="field-error">
+            <i class="fa fa-exclamation-circle"></i> {{ error }}
+          </p>
+        {% endfor %}
+      </div>
+      {% endfor %}
+
+      <input type="submit" value="Create Account">
+    </form>
+
+    <div class="auth-footer">
+      Already have an account?
+      <a href="{% url 'accounts:login' %}">Sign in</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

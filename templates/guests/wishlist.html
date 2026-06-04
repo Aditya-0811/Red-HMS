@@ -1,0 +1,81 @@
+{% extends 'partials/dashboard_base.html' %}
+{% load static %}
+{% block title %}Wishlist – Red HMS{% endblock %}
+
+{% block content %}
+<div id="dashboard">
+    <a href="#" class="utf_dashboard_nav_responsive">
+        <i class="fa fa-reorder"></i> Dashboard Menu
+    </a>
+    {% include 'partials/dashboard_sidebar.html' %}
+
+    <div class="utf_dashboard_content">
+        <div id="titlebar" class="dashboard_gradient">
+            <div class="row"><div class="col-md-12">
+                <h2>My Wishlist</h2>
+                <nav id="breadcrumbs"><ul>
+                    <li><a href="{% url 'rooms:index' %}">Home</a></li>
+                    <li><a href="{% url 'reports:dashboard' %}">Dashboard</a></li>
+                    <li>Wishlist</li>
+                </ul></nav>
+            </div></div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12 col-md-12">
+                <div class="utf_dashboard_list_box margin-top-0">
+                    <h4><i class="sl sl-icon-heart"></i> Saved Hotels ({{ bookmarks.count }})</h4>
+                    <ul>
+                        {% for b in bookmarks %}
+                        <li class="utf_approved_booking_listing">
+                            <div class="utf_list_box_listing_item bookings">
+                                {% if b.hotel.image %}
+                                <div class="utf_list_box_listing_item-img">
+                                    <img src="{{ b.hotel.image.url }}" alt="{{ b.hotel.name }}"
+                                         style="width:80px;height:70px;object-fit:cover;border-radius:4px;">
+                                </div>
+                                {% endif %}
+                                <div class="utf_list_box_listing_item_content">
+                                    <div class="inner">
+                                        <h3>{{ b.hotel.name }}</h3>
+                                        <div class="utf_inner_booking_listing_list">
+                                            <h5><i class="fa fa-map-marker" style="margin-right:5px;color:#888;"></i>Address:</h5>
+                                            <ul class="utf_booking_listing_list">
+                                                <li>{{ b.hotel.address }}</li>
+                                            </ul>
+                                        </div>
+                                        <div class="utf_inner_booking_listing_list">
+                                            <h5><i class="fa fa-calendar" style="margin-right:5px;color:#888;"></i>Saved:</h5>
+                                            <ul class="utf_booking_listing_list">
+                                                <li>{{ b.date|date:"M d, Y" }}</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="buttons-to-right">
+                                <a href="{% url 'rooms:hotel_detail' b.hotel.slug %}"
+                                   class="button border">
+                                    <i class="fa fa-eye"></i> View Hotel
+                                </a>
+                                <a href="{% url 'guests:toggle_bookmark' b.hotel.slug %}"
+                                   class="button border gray" style="margin-left:8px;"
+                                   onclick="return confirm('Remove from wishlist?')">
+                                    <i class="fa fa-trash"></i> Remove
+                                </a>
+                            </div>
+                        </li>
+                        {% empty %}
+                        <li style="text-align:center;padding:50px 0;color:#aaa;">
+                            <i class="fa fa-heart fa-3x" style="display:block;margin-bottom:15px;color:#ddd;"></i>
+                            No saved hotels yet.
+                            <a href="{% url 'rooms:hotel_listing' %}" class="button margin-top-15">Browse Hotels</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,295 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block title %}{{ room_type.type }} – {{ hotel.name }} – Red HMS{% endblock %}
+
+{% block content %}
+
+<div id="titlebar">
+    <div class="container"><div class="row"><div class="col-md-12">
+        <h2>{{ room_type.type }} — {{ hotel.name }}</h2>
+        <nav id="breadcrumbs"><ul>
+            <li><a href="{% url 'rooms:index' %}">Home</a></li>
+            <li><a href="{% url 'rooms:hotel_detail' hotel.slug %}">{{ hotel.name }}</a></li>
+            <li>{{ room_type.type }}</li>
+        </ul></nav>
+    </div></div></div>
+</div>
+
+
+<div class="container margin-top-35 margin-bottom-60">
+    <div class="row utf_sticky_main_wrapper">
+
+        <!-- LEFT -->
+        <div class="col-lg-8 col-md-8">
+
+            {% if room_type.thumbnail %}
+            <img src="{{ room_type.thumbnail.url }}" alt="{{ room_type.type }}"
+                 style="width:100%;max-height:360px;object-fit:cover;border-radius:6px;margin-bottom:25px;">
+            {% endif %}
+
+            <div class="utf_listing_section margin-bottom-30">
+                <h3 class="utf_listing_headline_part margin-bottom-20">
+                    <i class="sl sl-icon-layers"></i> Room Details
+                </h3>
+                <div class="row">
+                    <div class="col-md-4" style="text-align:center;padding:18px;background:#f9f9f9;border-radius:6px;margin:4px;">
+                        <i class="fa fa-tag fa-2x" style="color:#1a1a1a;display:block;margin-bottom:8px;"></i>
+                        {% if season_multiplier != 1.0 %}
+                        <span style="text-decoration:line-through;color:#aaa;font-size:.85rem;">${{ room_type.price }}</span><br>
+                        <strong style="color:{{ season_color }};font-size:1.1rem;">${{ seasonal_price }}</strong>
+                        {% else %}
+                        <strong>${{ room_type.price }}</strong>
+                        {% endif %}
+                        <br><small>{{ season_emoji }} {{ season }}</small>
+                    </div>
+                    <div class="col-md-4" style="text-align:center;padding:18px;background:#f9f9f9;border-radius:6px;margin:4px;">
+                        <i class="fa fa-bed fa-2x" style="color:#1a1a1a;display:block;margin-bottom:8px;"></i>
+                        <strong>{{ room_type.number_of_beds }}</strong><br><small>Beds</small>
+                    </div>
+                    <div class="col-md-3" style="text-align:center;padding:18px;background:#f9f9f9;border-radius:6px;margin:4px;">
+                        <i class="fa fa-door-open fa-2x" style="color:#1a1a1a;display:block;margin-bottom:8px;"></i>
+                        <strong>{{ available_rooms.count }}</strong><br><small>Available</small>
+                    </div>
+                </div>
+                {% if room_type.description %}
+                <div class="margin-top-20">{{ room_type.description|safe }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Available Rooms List -->
+            <div class="utf_listing_section">
+                <h3 class="utf_listing_headline_part margin-bottom-25">
+                    <i class="sl sl-icon-calendar"></i> Available Rooms
+                    <span class="utf_reviews_count">{{ available_rooms.count }}</span>
+                </h3>
+
+                {% if not checkin or not checkout %}
+                <div class="notification warning closeable margin-bottom-20">
+                    <p><span>Tip:</span> Set your dates on the right panel to see room availability.</p>
+                    <a class="close" href="#"></a>
+                </div>
+                {% endif %}
+
+                <div class="utf_pricing_list_section">
+                    <ul>
+                        {% for room in available_rooms %}
+                        <li>
+                            <h5>
+                                <i class="fa fa-door-open" style="color:#1a1a1a;"></i>
+                                Room {{ room.room_number }}
+                            </h5>
+                            <p>
+                                <i class="fa fa-bed"></i> {{ room.number_of_beds }} Bed(s)
+                                &nbsp;|&nbsp;
+                                <span style="color:#27ae60;">
+                                    <i class="fa fa-check-circle"></i> Available
+                                </span>
+                            </p>
+                            <span>${{ room.price }}/night</span>
+                            {% if room.is_available %}
+                            <span style="display:inline-flex;align-items:center;gap:4px;font-size:.76rem;font-weight:600;
+                                         padding:2px 9px;border-radius:20px;
+                                         background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;">
+                              <span style="width:6px;height:6px;border-radius:50%;display:inline-block;background:#22c55e;"></span>
+                              ✓ Available
+                            </span>
+                            {% else %}
+                            <span style="display:inline-flex;align-items:center;gap:4px;font-size:.76rem;font-weight:600;
+                                         padding:2px 9px;border-radius:20px;
+                                         background:#fef2f2;color:#991b1b;border:1px solid #fecaca;">
+                              <span style="width:6px;height:6px;border-radius:50%;display:inline-block;background:#ef4444;"></span>
+                              × Unavailable
+                            </span>
+                            {% endif %}
+
+                            <form method="POST" action="/booking/add_to_selection/" style="display:inline;float:right;">
+                                {% csrf_token %}
+                                <input type="hidden" name="id"             value="{{ room.id }}">
+                                <input type="hidden" name="room_id"        value="{{ room.id }}">
+                                <input type="hidden" name="hotel_id"       value="{{ hotel.id }}">
+                                <input type="hidden" name="hotel_name"     value="{{ hotel.name }}">
+                                <input type="hidden" name="room_name"      value="{{ room_type.type }}">
+                                <input type="hidden" name="room_price"     value="{{ room_type.price }}">
+                                <input type="hidden" name="number_of_beds" value="{{ room_type.number_of_beds }}">
+                                <input type="hidden" name="room_number"    value="{{ room.room_number }}">
+                                <input type="hidden" name="room_type"      value="{{ room_type.id }}">
+                                <input type="hidden" name="checkin"        value="{{ checkin }}">
+                                <input type="hidden" name="checkout"       value="{{ checkout }}">
+                                <input type="hidden" name="adult"          value="{{ adults|default:'1' }}">
+                                <input type="hidden" name="children"       value="{{ children|default:'0' }}">
+                                <button type="submit" class="button" style="padding:7px 16px;">
+                                    <i class="fa fa-plus-circle"></i> Add to Selection
+                                </button>
+                            </form>
+                        </li>
+                        {% empty %}
+                        <li style="color:#aaa;text-align:center;padding:30px 0;">
+                            <i class="fa fa-ban fa-2x" style="display:block;margin-bottom:10px;"></i>
+                            No rooms available for the selected dates.
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Sticky date + summary sidebar -->
+        <div class="col-lg-4 col-md-4">
+            <div class="utf_sticky_side_widget_area">
+
+                <div class="boxed-widget opening-hours summary margin-bottom-30"
+                     style="padding:14px;border-radius:8px;">
+                    <h3><i class="fa fa-calendar-check-o"></i> Select Dates</h3>
+                    <form method="GET" class="row with-forms margin-top-10">
+                        <div class="col-lg-12 select_date_box">
+                            <label>Check-in</label>
+                            <input type="date" name="checkin" id="checkin-input"
+                                   value="{{ checkin }}" placeholder="Check-in">
+                        </div>
+                        <div class="col-lg-12 select_date_box margin-top-10">
+                            <label>Check-out</label>
+                            <input type="date" name="checkout" id="checkout-input"
+                                   value="{{ checkout }}" placeholder="Check-out">
+                        </div>
+                        <div class="col-lg-12 margin-top-10">
+                            <a href="#">Guests <span class="qtyTotal"></span></a>
+                            <div class="panel-dropdown-content">
+                                <div class="qtyButtons">
+                                    <div class="qtyTitle">Adults</div>
+                                    <input type="text" name="adult"
+                                           value="{% if adults %}{{ adults }}{% else %}1{% endif %}">
+                                </div>
+                                <div class="qtyButtons">
+                                    <div class="qtyTitle">Children</div>
+                                    <input type="text" name="children"
+                                           value="{% if children %}{{ children }}{% else %}0{% endif %}">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="button fullwidth_block margin-top-15">
+                            <i class="fa fa-refresh"></i> Check Availability
+                        </button>
+                    </form>
+                </div>
+
+                <div class="utf_box_widget_item margin-bottom-25">
+                    <h3><i class="sl sl-icon-wallet"></i> Price</h3>
+                    <ul class="utf_box_widget_contacts_list">
+                        <li>Type <span style="float:right;">{{ room_type.type }}</span></li>
+                        <li>Rate
+                            <span style="float:right;">
+                                {% if season_multiplier != 1.0 %}
+                                <span style="text-decoration:line-through;color:#aaa;font-size:.85rem;">${{ room_type.price }}</span>
+                                <strong style="color:{{ season_color }};">${{ seasonal_price }}</strong>/night
+                                {% else %}
+                                ${{ room_type.price }}/night
+                                {% endif %}
+                            </span>
+                        </li>
+                        <li style="font-size:.8rem;color:{{ season_color }};font-weight:600;">
+                            {{ season_emoji }} {{ season }}
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Booking Summary Card -->
+                <div style="position:sticky;top:80px;background:#fff;border:1px solid #e5e5e5;
+                            border-radius:12px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.08);
+                            margin-bottom:20px;">
+                    <h4 style="font-size:1rem;font-weight:700;margin-bottom:16px;">
+                        <i class="fas fa-calendar-check" style="color:#ec4899;"></i> Booking Summary
+                    </h4>
+                    {% if checkin and checkout %}
+                    <div style="background:#f9f9f9;border-radius:8px;padding:12px;margin-bottom:16px;">
+                        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                            <span style="font-size:.82rem;color:#888;">Check-in</span>
+                            <span style="font-size:.82rem;font-weight:600;">{{ checkin }}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                            <span style="font-size:.82rem;color:#888;">Check-out</span>
+                            <span style="font-size:.82rem;font-weight:600;">{{ checkout }}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                            <span style="font-size:.82rem;color:#888;">Guests</span>
+                            <span style="font-size:.82rem;font-weight:600;">{{ adults|default:"1" }} Adult(s), {{ children|default:"0" }} Child(ren)</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;">
+                            <span style="font-size:.82rem;color:#888;">Rate/night</span>
+                            <span style="font-size:.82rem;font-weight:600;">${{ seasonal_price }}</span>
+                        </div>
+                    </div>
+                    <div style="text-align:center;padding:12px;
+                                background:linear-gradient(135deg,#ec4899,#8b5cf6);
+                                border-radius:8px;color:#fff;margin-bottom:16px;">
+                        <span id="rt-nights" style="font-size:1.5rem;font-weight:800;">—</span>
+                        <span style="font-size:.85rem;display:block;opacity:.9;">nights</span>
+                        <span id="rt-total" style="font-size:1rem;font-weight:700;">est. $—</span>
+                    </div>
+                    {% endif %}
+                    <p style="color:#888;font-size:.78rem;text-align:center;margin:0;">
+                        <i class="fas fa-lock"></i> Secure · No hidden fees
+                    </p>
+                </div>
+
+                <a href="{% url 'guests:selected_rooms' %}" class="button fullwidth_block margin-bottom-10">
+                    <i class="fa fa-shopping-cart"></i>
+                    View Selection
+                    <span class="room-count">{{ selected_count|default:0 }}</span>
+                </a>
+                <a href="{% url 'rooms:hotel_detail' hotel.slug %}"
+                   class="button border fullwidth_block">
+                    <i class="fa fa-arrow-left"></i> Back to Hotel
+                </a>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+/* Sync sidebar date changes into every room form's hidden checkin/checkout */
+function syncDatesToForms() {
+    var ci = $('#checkin-input').val();
+    var co = $('#checkout-input').val();
+    $('form[action="/booking/add_to_selection/"] input[name="checkin"]').val(ci);
+    $('form[action="/booking/add_to_selection/"] input[name="checkout"]').val(co);
+    /* Enable/disable Add buttons based on whether dates are set */
+    var hasDate = ci && co;
+    $('form[action="/booking/add_to_selection/"] button[type="submit"]')
+        .prop('disabled', !hasDate)
+        .css('opacity', hasDate ? '1' : '0.5')
+        .attr('title', hasDate ? '' : 'Set check-in and check-out dates first');
+}
+$('#checkin-input').on('change', syncDatesToForms);
+$('#checkout-input').on('change', syncDatesToForms);
+/* Run on load to reflect pre-filled dates from URL */
+syncDatesToForms();
+
+/* Hard guard: block submission if still no dates */
+$(document).on('submit', 'form[action="/booking/add_to_selection/"]', function(e) {
+    var ci = $(this).find('input[name="checkin"]').val();
+    var co = $(this).find('input[name="checkout"]').val();
+    if (!ci || !co) {
+        e.preventDefault();
+        alert('Please set your check-in and check-out dates in the date panel on the right before adding a room.');
+    }
+});
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+    var ci=new Date('{{ checkin }}'),co=new Date('{{ checkout }}');
+    if(!isNaN(ci.getTime())&&!isNaN(co.getTime())){
+        var n=Math.round((co-ci)/86400000);
+        var t=n*{{ seasonal_price }};
+        var el=document.getElementById('rt-nights');
+        var te=document.getElementById('rt-total');
+        if(el)el.textContent=n;
+        if(te)te.textContent='est. $'+t.toFixed(2);
+    }
+})();
+</script>
+{% endblock %}

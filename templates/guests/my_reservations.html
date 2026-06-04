@@ -1,0 +1,195 @@
+{% extends 'partials/dashboard_base.html' %}
+{% load static %}
+{% block title %}My Bookings – Red HMS{% endblock %}
+
+{% block content %}
+<div id="dashboard">
+    <a href="#" class="utf_dashboard_nav_responsive">
+        <i class="fa fa-reorder"></i> Dashboard Menu
+    </a>
+    {% include 'partials/dashboard_sidebar.html' %}
+
+    <div class="utf_dashboard_content">
+        <div id="titlebar" class="dashboard_gradient">
+            <div class="row"><div class="col-md-12">
+                <h2>My Bookings</h2>
+                <nav id="breadcrumbs"><ul>
+                    <li><a href="{% url 'rooms:index' %}">Home</a></li>
+                    <li><a href="{% url 'reports:dashboard' %}">Dashboard</a></li>
+                    <li>My Bookings</li>
+                </ul></nav>
+            </div></div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12 col-md-12">
+                <div class="utf_dashboard_list_box margin-top-0">
+                    <h4><i class="sl sl-icon-docs"></i> All Bookings ({{ reservations.count }})</h4>
+                    <ul>
+                        {% for r in reservations %}
+                        <li class="utf_approved_booking_listing">
+                            <div class="utf_list_box_listing_item bookings">
+                                <div class="utf_list_box_listing_item_content">
+                                    <div class="inner">
+                                        <h3 style="font-size:1rem;font-weight:700;margin-bottom:10px;">
+                                            {{ r.hotel.name }}
+                                            <span class="utf_booking_listing_status" style="font-size:.72rem;vertical-align:middle;">
+                                                {{ r.payment_status|title }}
+                                            </span>
+                                        </h3>
+                                        <div class="booking-fields" style="display:flex;flex-wrap:wrap;gap:6px 20px;align-items:center;">
+                                            <div class="utf_inner_booking_listing_list">
+                                                <h5><i class="fa fa-hashtag" style="margin-right:4px;opacity:.6;"></i>Booking ID:</h5>
+                                                <ul class="utf_booking_listing_list">
+                                                    <li><code>#{{ r.booking_id }}</code></li>
+                                                </ul>
+                                            </div>
+                                            <div class="utf_inner_booking_listing_list">
+                                                <h5><i class="fa fa-bed" style="margin-right:4px;opacity:.6;"></i>Room Type:</h5>
+                                                <ul class="utf_booking_listing_list">
+                                                    <li>{{ r.room_type.type }}</li>
+                                                </ul>
+                                            </div>
+                                            <div class="utf_inner_booking_listing_list">
+                                                <h5><i class="fa fa-calendar-check-o" style="margin-right:4px;opacity:.6;"></i>Check-In:</h5>
+                                                <ul class="utf_booking_listing_list">
+                                                    <li>{{ r.check_in_date }}</li>
+                                                </ul>
+                                            </div>
+                                            <div class="utf_inner_booking_listing_list">
+                                                <h5><i class="fa fa-calendar-times-o" style="margin-right:4px;opacity:.6;"></i>Check-Out:</h5>
+                                                <ul class="utf_booking_listing_list">
+                                                    <li>{{ r.check_out_date }}</li>
+                                                </ul>
+                                            </div>
+                                            <div class="utf_inner_booking_listing_list">
+                                                <h5><i class="fa fa-moon-o" style="margin-right:4px;opacity:.6;"></i>Nights:</h5>
+                                                <ul class="utf_booking_listing_list">
+                                                    <li>{{ r.total_days }}</li>
+                                                </ul>
+                                            </div>
+                                            <div class="utf_inner_booking_listing_list">
+                                                <h5><i class="fa fa-dollar" style="margin-right:4px;opacity:.6;"></i>Total:</h5>
+                                                <ul class="utf_booking_listing_list">
+                                                    <li style="color:var(--brand);font-weight:700;">${{ r.total }}</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="buttons-to-right">
+                                <a href="{% url 'guests:reservation_detail' r.booking_id %}"
+                                   class="button border">
+                                    <i class="fa fa-eye"></i> View Details
+                                </a>
+                                {% if r.payment_status == "paid" %}
+                                <a href="{% url 'billing:invoice' r.booking_id %}"
+                                   class="button border">
+                                    <i class="fa fa-file-text"></i> Invoice
+                                </a>
+                                {% endif %}
+                                {% if r.payment_status == "paid" or r.payment_status == "processing" %}
+                                <button class="button border mod-btn" data-id="{{ r.booking_id }}" data-type="modify"
+                                        style="margin-left:4px;padding:8px 12px;font-size:.82rem;">
+                                    <i class="fa fa-edit"></i> Modify
+                                </button>
+                                <button class="button border mod-btn" data-id="{{ r.booking_id }}" data-type="cancel"
+                                        style="margin-left:4px;padding:8px 12px;font-size:.82rem;
+                                               background:#fef2f2;border-color:#fecaca;color:#991b1b;">
+                                    <i class="fa fa-times"></i> Cancel
+                                </button>
+                                {% endif %}
+                            </div>
+                        </li>
+                        {% empty %}
+                        <li style="text-align:center;padding:50px 0;color:#aaa;">
+                            <i class="fa fa-calendar-times-o fa-3x" style="display:block;margin-bottom:15px;"></i>
+                            No bookings yet.
+                            <a href="{% url 'rooms:hotel_listing' %}" class="button margin-top-15">
+                                Browse Hotels
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modification / Cancellation Modal -->
+<div id="mod-modal" style="display:none;position:fixed;inset:0;z-index:9999;
+     background:rgba(0,0,0,.5);align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;padding:30px;max-width:480px;width:90%;position:relative;">
+        <button id="mod-close" style="position:absolute;top:12px;right:16px;background:none;border:none;
+                font-size:1.4rem;cursor:pointer;color:#888;line-height:1;">×</button>
+        <h4 id="mod-title" style="margin-bottom:16px;margin-right:24px;">Modify Booking</h4>
+        <div id="mod-msg" style="display:none;padding:10px 14px;border-radius:6px;margin-bottom:14px;font-size:.88rem;"></div>
+        <div id="mod-dates">
+            <div style="display:flex;gap:12px;margin-bottom:14px;">
+                <div style="flex:1;">
+                    <label style="font-size:.82rem;color:#666;display:block;margin-bottom:4px;">New Check-in</label>
+                    <input type="date" id="mod-checkin" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size:.82rem;color:#666;display:block;margin-bottom:4px;">New Check-out</label>
+                    <input type="date" id="mod-checkout" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;">
+                </div>
+            </div>
+        </div>
+        <div style="margin-bottom:14px;">
+            <label style="font-size:.82rem;color:#666;display:block;margin-bottom:4px;">Reason</label>
+            <textarea id="mod-reason" rows="3"
+                      style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:.88rem;"
+                      placeholder="Please provide a reason for your request…"></textarea>
+        </div>
+        <button id="mod-submit" class="button" style="width:100%;">Submit Request</button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var modModal=document.getElementById('mod-modal');
+var modBookingId='',modType='';
+document.querySelectorAll('.mod-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+        modBookingId=btn.dataset.id;
+        modType=btn.dataset.type;
+        document.getElementById('mod-title').textContent=
+            modType==='cancel'?'Cancel Booking #'+modBookingId:'Modify Booking Dates';
+        document.getElementById('mod-dates').style.display=
+            modType==='cancel'?'none':'block';
+        document.getElementById('mod-msg').style.display='none';
+        document.getElementById('mod-reason').value='';
+        modModal.style.display='flex';
+    });
+});
+document.getElementById('mod-close').addEventListener('click',function(){
+    modModal.style.display='none';
+});
+document.getElementById('mod-submit').addEventListener('click',function(){
+    var fd=new FormData();
+    fd.append('type',modType);
+    fd.append('reason',document.getElementById('mod-reason').value.trim());
+    fd.append('csrfmiddlewaretoken','{{ csrf_token }}');
+    if(modType==='modify'){
+        fd.append('new_checkin',document.getElementById('mod-checkin').value);
+        fd.append('new_checkout',document.getElementById('mod-checkout').value);
+    }
+    fetch('/guests/reservation/'+modBookingId+'/modify/',{method:'POST',body:fd})
+    .then(function(r){return r.json();})
+    .then(function(d){
+        var msg=document.getElementById('mod-msg');
+        msg.style.display='block';
+        if(d.success){
+            msg.style.background='#f0fdf4';msg.style.color='#166534';msg.textContent=d.message;
+        }else{
+            msg.style.background='#fef2f2';msg.style.color='#991b1b';msg.textContent=d.error;
+        }
+    });
+});
+</script>
+{% endblock %}

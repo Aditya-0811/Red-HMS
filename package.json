@@ -1,0 +1,22 @@
+{
+  "name": "red-hms",
+  "version": "1.0.0",
+  "description": "Red HMS – Hotel Management System TypeScript frontend",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "build:prod": "tsc && npm run minify",
+    "minify": "npx terser static/scripts/main.js -o static/scripts/main.min.js --compress --mangle",
+    "lint": "eslint src/ts/**/*.ts",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/jquery": "^3.5.29",
+    "@types/stripe-v3": "^3.1.31",
+    "terser": "^5.27.0"
+  },
+  "keywords": ["django", "hotel", "management", "typescript"],
+  "author": "Red HMS",
+  "license": "MIT"
+}

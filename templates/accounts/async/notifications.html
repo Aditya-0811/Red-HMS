@@ -1,0 +1,20 @@
+{% for n in notifications %}
+<li class="noti-div-{{ n.id }}">
+    {% if n.type == "Booking Confirmed" %}
+        Your booking has been placed successfully.
+    {% elif n.type == "Booking Cancelled" %}
+        Your booking has been cancelled.
+    {% elif n.type == "Payment Received" %}
+        Payment received successfully.
+    {% else %}
+        {{ n.message|default:n.type }}
+    {% endif %}
+    <a href="#" data-index="{{ n.id }}"
+       class="noti-{{ n.id }} close-list-item mark-noti-as-seen"
+       style="float:right;color:#e74c3c;">
+        <i class="fa fa-close"></i>
+    </a>
+</li>
+{% empty %}
+<li style="text-align:center;color:#aaa;padding:20px 0;">No notifications.</li>
+{% endfor %}

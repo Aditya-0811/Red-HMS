@@ -1,0 +1,379 @@
+{% extends 'partials/dashboard_base.html' %}
+{% load static %}
+{% block title %}Booking #{{ reservation.booking_id }} – Red HMS{% endblock %}
+
+{% block content %}
+<div id="dashboard">
+    <a href="#" class="utf_dashboard_nav_responsive">
+        <i class="fa fa-reorder"></i> Dashboard Menu
+    </a>
+    {% include 'partials/dashboard_sidebar.html' %}
+
+    <div class="utf_dashboard_content">
+        <div id="titlebar" class="dashboard_gradient">
+            <div class="row"><div class="col-md-12">
+                <h2>Booking #{{ reservation.booking_id }}</h2>
+                <nav id="breadcrumbs"><ul>
+                    <li><a href="{% url 'rooms:index' %}">Home</a></li>
+                    <li><a href="{% url 'guests:my_reservations' %}">My Bookings</a></li>
+                    <li>#{{ reservation.booking_id }}</li>
+                </ul></nav>
+            </div></div>
+        </div>
+
+        <div class="row">
+            <!-- Booking Details -->
+            <div class="col-lg-6 col-md-12">
+                <div class="utf_dashboard_list_box margin-top-0">
+                    <h4><i class="fa fa-hashtag" style="margin-right:7px;color:#888;"></i>Booking ID: {{ reservation.booking_id }}</h4>
+                    <ul>
+                        <li class="utf_approved_booking_listing">
+                            <div class="utf_list_box_listing_item bookings">
+                                <div class="utf_list_box_listing_item_content">
+                                    <div class="inner">
+                                        <h3>
+                                            {{ reservation.full_name|title }}
+                                            <span class="utf_booking_listing_status">
+                                                {{ reservation.payment_status|title }}
+                                            </span>
+                                        </h3>
+                                        {% for label, value in booking_fields %}
+                                        <div class="utf_inner_booking_listing_list">
+                                            <h5>{{ label }}:</h5>
+                                            <ul class="utf_booking_listing_list">
+                                                <li>{{ value }}</li>
+                                            </ul>
+                                        </div>
+                                        {% endfor %}
+                                                        <div class="utf_inner_booking_listing_list">
+                                            <h5><i class="fa fa-building" style="margin-right:4px;opacity:.6;"></i>Hotel Name:</h5>
+                                            <ul class="utf_booking_listing_list">
+                                                <li>{{ reservation.hotel.name }}</li>
+                                            </ul>
+                                        </div>
+                                        <div class="utf_inner_booking_listing_list">
+                                            <h5><i class="fa fa-map-marker" style="margin-right:4px;opacity:.6;"></i>Hotel Address:</h5>
+                                            <ul class="utf_booking_listing_list">
+                                                <li><small>{{ reservation.hotel.address }}</small></li>
+                                            </ul>
+                                        </div>
+                                        <div class="utf_inner_booking_listing_list">
+                                            <h5><i class="fa fa-bed" style="margin-right:4px;opacity:.6;"></i>Room Type:</h5>
+                                            <ul class="utf_booking_listing_list">
+                                                <li>{{ reservation.room_type.type }}</li>
+                                            </ul>
+                                        </div>
+                                        <div class="utf_inner_booking_listing_list">
+                                            <h5><i class="fa fa-calendar-check-o" style="margin-right:4px;opacity:.6;"></i>Check-In:</h5>
+                                            <ul class="utf_booking_listing_list">
+                                                <li class="highlighted">{{ reservation.check_in_date }}</li>
+                                            </ul>
+                                        </div>
+                                        <div class="utf_inner_booking_listing_list">
+                                            <h5><i class="fa fa-calendar-times-o" style="margin-right:4px;opacity:.6;"></i>Check-Out:</h5>
+                                            <ul class="utf_booking_listing_list">
+                                                <li class="highlighted">{{ reservation.check_out_date }}</li>
+                                            </ul>
+                                        </div>
+                                        <div class="utf_inner_booking_listing_list">
+                                            <h5><i class="fa fa-moon-o" style="margin-right:4px;opacity:.6;"></i>Nights:</h5>
+                                            <ul class="utf_booking_listing_list">
+                                                <li>{{ reservation.total_days }}</li>
+                                            </ul>
+                                        </div>
+                                        <div class="utf_inner_booking_listing_list">
+                                            <h5><i class="fa fa-users" style="margin-right:4px;opacity:.6;"></i>Guests:</h5>
+                                            <ul class="utf_booking_listing_list">
+                                                <li>{{ reservation.num_adults }} Adult(s), {{ reservation.num_children }} Child(ren)</li>
+                                            </ul>
+                                        </div>
+                                        <div class="utf_inner_booking_listing_list">
+                                            <h5><i class="fa fa-dollar" style="margin-right:4px;opacity:.6;"></i>Total Paid:</h5>
+                                            <ul class="utf_booking_listing_list">
+                                                <li class="highlighted">${{ reservation.total }}</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="buttons-to-right margin-top-10">
+                                {% if reservation.payment_status == "paid" %}
+                                <a href="{% url 'billing:invoice' reservation.booking_id %}"
+                                   class="button border">
+                                    <i class="fa fa-file-text-o"></i> View Invoice
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'guests:my_reservations' %}"
+                                   class="button border gray" style="margin-left:8px;">
+                                    <i class="fa fa-arrow-left"></i> Back
+                                </a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Booked Rooms -->
+            <div class="col-lg-6 col-md-12">
+                <div class="utf_dashboard_list_box margin-top-0">
+                    <h4><i class="fa fa-bed" style="margin-right:8px;color:#888;"></i>Booked Rooms ({{ reservation.room.all.count }})</h4>
+                    <ul>
+                        {% for r in reservation.room.all %}
+                        <li class="utf_approved_booking_listing">
+                            <div class="utf_list_box_listing_item bookings">
+                                <div class="utf_list_box_listing_item_content">
+                                    <div class="inner">
+                                        <h3>{{ r.room_type.type }} Room</h3>
+                                        <div class="utf_inner_booking_listing_list">
+                                            <h5><i class="fa fa-key" style="margin-right:4px;opacity:.6;"></i>Room Number:</h5>
+                                            <ul class="utf_booking_listing_list">
+                                                <li>{{ r.room_number }}</li>
+                                            </ul>
+                                        </div>
+                                        <div class="utf_inner_booking_listing_list">
+                                            <h5><i class="fa fa-dollar" style="margin-right:4px;opacity:.6;"></i>Room Price:</h5>
+                                            <ul class="utf_booking_listing_list">
+                                                <li class="highlighted">${{ r.room_type.price }}/night</li>
+                                            </ul>
+                                        </div>
+                                        <div class="utf_inner_booking_listing_list">
+                                            <h5><i class="fa fa-bed" style="margin-right:4px;opacity:.6;"></i>Beds:</h5>
+                                            <ul class="utf_booking_listing_list">
+                                                <li>{{ r.number_of_beds }}</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        {% if activity_logs %}
+        <div class="row margin-top-20">
+            <div class="col-lg-6 col-md-12">
+                <div class="utf_dashboard_list_box" style="padding:20px;">
+                    <h4><i class="fas fa-history" style="color:#06b6d4;"></i> Activity Log</h4>
+                    <div style="position:relative;padding-left:28px;margin-top:16px;">
+                        <div style="position:absolute;left:8px;top:0;bottom:0;width:2px;background:#f0f0f0;"></div>
+                        {% for log in activity_logs %}
+                        <div style="position:relative;margin-bottom:16px;">
+                            <div style="position:absolute;left:-22px;top:3px;width:10px;height:10px;border-radius:50%;
+                                        background:#06b6d4;border:2px solid #fff;box-shadow:0 0 0 2px #06b6d440;"></div>
+                            <div style="font-size:.9rem;font-weight:600;color:#333;">{{ log.description }}</div>
+                            <div style="font-size:.78rem;color:#888;margin-top:2px;">
+                                {% if log.staff %}<span style="color:#8b5cf6;">{{ log.staff.username }}</span> · {% endif %}
+                                {{ log.date|date:"d M Y H:i" }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ── Payment Details ── -->
+        {% if payments %}
+        <div class="row margin-top-20">
+            <div class="col-lg-6 col-md-12">
+                <div class="utf_dashboard_list_box" style="padding:20px;">
+                    <h4><i class="fas fa-credit-card" style="color:#ec4899;margin-right:8px;"></i>Payment Details</h4>
+                    {% for p in payments %}
+                    <div style="display:flex;flex-wrap:wrap;gap:0;margin-top:12px;">
+                        <div style="width:50%;padding:8px 0;border-bottom:1px solid #f5f5f5;">
+                            <span style="font-size:.78rem;color:#888;display:block;">Payment Method</span>
+                            <strong style="font-size:.95rem;">
+                                {% if p.method == 'Stripe' %}<i class="fab fa-stripe" style="color:#6772e5;"></i>{% elif p.method == 'PayPal' %}<i class="fab fa-paypal" style="color:#003087;"></i>{% elif p.method == 'Cash' %}<i class="fas fa-credit-card" style="color:#27ae60;"></i>{% else %}<i class="fas fa-university"></i>{% endif %}
+                                {{ p.method }}
+                            </strong>
+                        </div>
+                        <div style="width:50%;padding:8px 0;border-bottom:1px solid #f5f5f5;">
+                            <span style="font-size:.78rem;color:#888;display:block;">Payment Status</span>
+                            <span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:.78rem;font-weight:700;
+                                background:{% if p.status == 'paid' %}#f0fdf4{% elif p.status == 'failed' %}#fef2f2{% else %}#fffbeb{% endif %};
+                                color:{% if p.status == 'paid' %}#166534{% elif p.status == 'failed' %}#991b1b{% else %}#92400e{% endif %};">
+                                {{ p.get_status_display }}
+                            </span>
+                        </div>
+                        <div style="width:50%;padding:8px 0;border-bottom:1px solid #f5f5f5;">
+                            <span style="font-size:.78rem;color:#888;display:block;">Amount Paid</span>
+                            <strong style="font-size:.95rem;color:#1a1a1a;">${{ p.amount|floatformat:2 }}</strong>
+                        </div>
+                        <div style="width:50%;padding:8px 0;border-bottom:1px solid #f5f5f5;">
+                            <span style="font-size:.78rem;color:#888;display:block;">Payment Date</span>
+                            <strong style="font-size:.88rem;">{{ p.date|date:"d M Y, H:i" }}</strong>
+                        </div>
+                        {% if p.stripe_payment_intent %}
+                        <div style="width:100%;padding:8px 0;">
+                            <span style="font-size:.78rem;color:#888;display:block;">Transaction Ref</span>
+                            <code style="font-size:.75rem;color:#555;">{{ p.stripe_payment_intent|truncatechars:32 }}</code>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% elif reservation.payment_status == 'paid' %}
+        <!-- paid but no Payment record yet (legacy booking) -->
+        <div class="row margin-top-20">
+            <div class="col-lg-6 col-md-12">
+                <div class="utf_dashboard_list_box" style="padding:20px;">
+                    <h4><i class="fas fa-credit-card" style="color:#ec4899;margin-right:8px;"></i>Payment Details</h4>
+                    <div style="display:flex;flex-wrap:wrap;gap:0;margin-top:12px;">
+                        <div style="width:50%;padding:8px 0;border-bottom:1px solid #f5f5f5;">
+                            <span style="font-size:.78rem;color:#888;display:block;">Payment Method</span>
+                            <strong>
+                                {% if reservation.stripe_payment_intent %}<i class="fab fa-stripe" style="color:#6772e5;"></i> Stripe{% else %}<i class="fas fa-credit-card" style="color:#27ae60;"></i> Card{% endif %}
+                            </strong>
+                        </div>
+                        <div style="width:50%;padding:8px 0;border-bottom:1px solid #f5f5f5;">
+                            <span style="font-size:.78rem;color:#888;display:block;">Payment Status</span>
+                            <span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:.78rem;font-weight:700;background:#f0fdf4;color:#166534;">
+                                Paid
+                            </span>
+                        </div>
+                        <div style="width:50%;padding:8px 0;">
+                            <span style="font-size:.78rem;color:#888;display:block;">Amount Paid</span>
+                            <strong>${{ reservation.total|floatformat:2 }}</strong>
+                        </div>
+                        <div style="width:50%;padding:8px 0;">
+                            <span style="font-size:.78rem;color:#888;display:block;">Booking Date</span>
+                            <strong>{{ reservation.date|date:"d M Y" }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ── Room Service ── -->
+        {% if reservation.payment_status == 'paid' %}
+        <div class="row margin-top-20">
+            <div class="col-lg-8 col-md-12">
+                <div class="utf_dashboard_list_box">
+                    <h4><i class="fas fa-concierge-bell" style="color:#ec4899;"></i> Request Room Service</h4>
+                    {% if not reservation.checked_in %}
+                    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;margin-bottom:16px;">
+                        <i class="fas fa-info-circle" style="color:#f59e0b;"></i>
+                        Room service requests can be submitted once you have checked in.
+                    </div>
+                    {% endif %}
+                    <p style="font-size:.85rem;color:#888;margin-bottom:12px;">
+                        Select a service type, choose your room, then describe your request.
+                    </p>
+
+                    <!-- Service type buttons -->
+                    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+                        <button type="button" class="svc-btn button border" data-type="Food"      style="padding:7px 14px;font-size:.82rem;">🍽 Food</button>
+                        <button type="button" class="svc-btn button border" data-type="Cleaning"  style="padding:7px 14px;font-size:.82rem;">🧹 Cleaning</button>
+                        <button type="button" class="svc-btn button border" data-type="Laundry"   style="padding:7px 14px;font-size:.82rem;">👔 Laundry</button>
+                        <button type="button" class="svc-btn button border" data-type="Transport" style="padding:7px 14px;font-size:.82rem;">🚗 Transport</button>
+                        <button type="button" class="svc-btn button border" data-type="Technical" style="padding:7px 14px;font-size:.82rem;">🔧 Technical</button>
+                        <button type="button" class="svc-btn button border" data-type="Spa"       style="padding:7px 14px;font-size:.82rem;">💆 Spa</button>
+                        <button type="button" class="svc-btn button border" data-type="Other"     style="padding:7px 14px;font-size:.82rem;">📋 Other</button>
+                    </div>
+
+                    <!-- Room selector — visible after a type is chosen -->
+                    <div id="svc-room-wrap" style="display:none;margin-bottom:12px;">
+                        <label style="font-size:.82rem;font-weight:600;margin-bottom:4px;display:block;">
+                            <i class="fas fa-bed" style="color:#ec4899;margin-right:4px;"></i>Select Room
+                        </label>
+                        <select id="svc-room"
+                                style="width:100%;max-width:320px;padding:8px 12px;border:1.5px solid #e0e0e0;
+                                       border-radius:8px;font-size:.88rem;background:#fff;">
+                            <option value="">— Choose a room —</option>
+                            {% for r in rooms %}
+                            <option value="{{ r.id }}">Room {{ r.room_number }} — {{ r.room_type.type }}</option>
+                            {% empty %}
+                            <option value="" disabled>No rooms assigned yet</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Description -->
+                    <div style="margin-bottom:12px;">
+                        <textarea id="svc-desc" rows="3"
+                                  style="width:100%;padding:10px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:.88rem;"
+                                  placeholder="Describe your request (optional)…"></textarea>
+                    </div>
+                    <button id="svc-submit" class="button" {% if not reservation.checked_in %}disabled style="opacity:.5;cursor:not-allowed;"{% endif %}>
+                        <i class="fas fa-paper-plane"></i> Submit Request
+                    </button>
+
+                    <h5 style="margin-top:24px;margin-bottom:12px;">Previous Requests</h5>
+                    <ul id="svc-list" style="list-style:none;padding:0;margin:0;">
+                        {% for svc in reservation.room_services.all %}
+                        <li style="background:#f9f9f9;border-radius:8px;padding:10px 14px;margin-bottom:8px;
+                                    display:flex;justify-content:space-between;align-items:center;">
+                            <div>
+                                <strong>{{ svc.service_type }}</strong>
+                                {% if svc.room %}<span style="background:#f0f0f0;padding:1px 7px;border-radius:10px;font-size:.75rem;margin-left:6px;">Room {{ svc.room.room_number }}</span>{% endif %}
+                                {% if svc.description %}<span style="color:#888;font-size:.82rem;"> — {{ svc.description }}</span>{% endif %}
+                            </div>
+                            <div style="font-size:.8rem;color:#aaa;">{{ svc.date }}</div>
+                        </li>
+                        {% empty %}
+                        <li id="svc-empty" style="color:#aaa;font-size:.85rem;padding:8px 0;">No requests yet.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if reservation.payment_status == 'paid' and reservation.checked_in %}
+<script>
+var selectedSvcType = '';
+document.querySelectorAll('.svc-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.svc-btn').forEach(function(b) {
+            b.style.background = ''; b.style.color = ''; b.style.borderColor = '';
+        });
+        btn.style.background = '#ec4899'; btn.style.color = '#fff'; btn.style.borderColor = '#ec4899';
+        selectedSvcType = btn.dataset.type;
+        // Reveal room selector once a type is chosen
+        document.getElementById('svc-room-wrap').style.display = 'block';
+    });
+});
+
+document.getElementById('svc-submit').addEventListener('click', function() {
+    if (!selectedSvcType) { alert('Please select a service type.'); return; }
+    var roomId = document.getElementById('svc-room').value;
+    var fd = new FormData();
+    fd.append('service_type', selectedSvcType);
+    fd.append('description', document.getElementById('svc-desc').value);
+    fd.append('room_id', roomId);
+    fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    fetch('{% url "guests:room_service" reservation.booking_id %}', { method: 'POST', body: fd })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        if (d.error) { alert(d.error); return; }
+        var empty = document.getElementById('svc-empty');
+        if (empty) empty.remove();
+        var li = document.createElement('li');
+        li.style.cssText = 'background:#f9f9f9;border-radius:8px;padding:10px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;';
+        var roomBadge = d.room_label ? '<span style="background:#f0f0f0;padding:1px 7px;border-radius:10px;font-size:.75rem;margin-left:6px;">' + d.room_label + '</span>' : '';
+        li.innerHTML = '<div><strong>' + d.service_type + '</strong>' + roomBadge + (d.description ? ' <span style="color:#888;font-size:.82rem;">— ' + d.description + '</span>' : '') + '</div><div style="font-size:.8rem;color:#aaa;">' + d.date + '</div>';
+        document.getElementById('svc-list').prepend(li);
+        document.getElementById('svc-desc').value = '';
+        document.getElementById('svc-room').value = '';
+        document.getElementById('svc-room-wrap').style.display = 'none';
+        selectedSvcType = '';
+        document.querySelectorAll('.svc-btn').forEach(function(b) {
+            b.style.background = ''; b.style.color = ''; b.style.borderColor = '';
+        });
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

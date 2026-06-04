@@ -1,0 +1,205 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Invoice #{{ reservation.booking_id }} – Red HMS</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css"/>
+    <style>
+        body { background:#eee; margin-top:20px; font-family:'Open Sans',sans-serif; }
+        .receipt-main {
+            background:#fff;
+            border-bottom:12px solid #333;
+            border-top:12px solid #1a1a1a;
+            margin:50px auto;
+            padding:40px 30px !important;
+            position:relative;
+            box-shadow:0 1px 21px #acacac;
+            color:#333;
+            max-width:800px;
+        }
+        .receipt-main::after {
+            background:#000000;
+            content:"";
+            height:5px;
+            left:0;
+            position:absolute;
+            right:0;
+            top:-13px;
+        }
+        .receipt-main thead { background:#414143; }
+        .receipt-main thead th { color:#fff; padding:13px 20px !important; }
+        .receipt-main td { padding:9px 20px !important; font-size:13px; }
+        .receipt-right h5 { font-size:16px; font-weight:bold; margin:0 0 7px 0; }
+        .receipt-right p { font-size:12px; margin:0; line-height:1.8; }
+        .receipt-right p i { width:18px; text-align:center; }
+        .receipt-header-mid { margin:24px 0; overflow:hidden; }
+        .brand-name { font-size:1.6rem; font-weight:800; color:#1a1a1a; }
+        .invoice-badge {
+            background:#1a1a1a; color:#fff; padding:5px 16px;
+            border-radius:4px; font-weight:700; letter-spacing:.05em;
+        }
+        .total-row td { font-weight:700; font-size:1rem; color:#1a1a1a; }
+        @media print {
+            .no-print, #header_part, #footer, #bottom_backto_top,
+            .utf_dashboard_navigation { display:none !important; }
+            body { background: white !important; }
+            .invoice-container { box-shadow:none !important; border:none !important; }
+            .receipt-main { box-shadow:none; border:none; margin:0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="receipt-main">
+
+        <!-- Print button (top) -->
+        <div class="no-print" style="text-align:right;margin-bottom:20px;">
+            <button onclick="window.print()" class="btn btn-dark">
+                <i class="fas fa-print"></i> Print Invoice
+            </button>
+            <a href="{% url 'reports:dashboard' %}" class="btn btn-outline-secondary ml-2">
+                ← Back
+            </a>
+        </div>
+
+        <!-- PAID watermark -->
+        {% if reservation.payment_status == 'paid' %}
+        <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);
+                    font-size:5rem;font-weight:900;color:rgba(39,174,96,.12);pointer-events:none;z-index:0;
+                    letter-spacing:.2em;border:8px solid rgba(39,174,96,.12);padding:10px 30px;border-radius:8px;">
+            PAID
+        </div>
+        {% endif %}
+
+        <!-- Top: Logo + Customer -->
+        <div class="d-flex justify-content-between flex-wrap mb-4">
+            <div>
+                <div class="receipt-header">
+                    <div class="brand-name">🏨 Red HMS</div>
+                    <div class="receipt-right mt-2">
+                        <p><i class="fa fa-phone"></i> +1 (800) RED-HMS</p>
+                        <p><i class="fa fa-envelope"></i> support@redhms.com</p>
+                        <p><i class="fa fa-map-marker-alt"></i> 123 Hotel Street, City</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="receipt-header receipt-header-mid">
+                    <div class="receipt-right">
+                        <h5>Customer Details</h5>
+                        <p><b><i class="fa fa-user"></i></b> {{ reservation.full_name }}</p>
+                        <p><b><i class="fa fa-envelope"></i></b> {{ reservation.email }}</p>
+                        <p><b><i class="fa fa-phone"></i></b> {{ reservation.phone|default:"N/A" }}</p>
+                    </div>
+                    <br>
+                    <div>
+                        <h6>INVOICE #{{ reservation.booking_id }}</h6>
+                        <span class="invoice-badge">
+                            {% if reservation.payment_status == "paid" %}✓ PAID{% else %}{{ reservation.payment_status|upper }}{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Room Line Items -->
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Room</th>
+                    <th>Type</th>
+                    <th>Beds</th>
+                    <th>Rate/Night</th>
+                    <th>Nights</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in rooms %}
+                <tr>
+                    <td>Room {{ r.room_number }}</td>
+                    <td>{{ r.room_type.type }}</td>
+                    <td>{{ r.number_of_beds }}</td>
+                    <td>${{ r.room_type.price }}</td>
+                    <td>{{ reservation.total_days }}</td>
+                    <td>${{ r.room_type.price }}</td>
+                </tr>
+                {% endfor %}
+                {% if reservation.room_services.all %}
+                <tr>
+                    <td colspan="6" style="font-weight:700;padding-top:12px;">Room Services</td>
+                </tr>
+                {% for svc in reservation.room_services.all %}
+                <tr>
+                    <td>{{ svc.service_type }}{% if svc.description %} — {{ svc.description }}{% endif %}</td>
+                    <td>{{ svc.date }}</td>
+                    <td colspan="3"></td>
+                    <td>${{ svc.price }}</td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+
+        <!-- Hotel + Summary Side by Side -->
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <div class="receipt-right">
+                    <h5>Hotel Details</h5>
+                    <p class="mb-2"><b>Name:</b> {{ reservation.hotel.name }}</p>
+                    <p class="mb-2"><b>Address:</b> {{ reservation.hotel.address }}</p>
+                    <hr>
+                    <p class="mb-2"><b>Email:</b> {{ reservation.hotel.email }}</p>
+                    <p class="mb-2"><b>Mobile:</b> {{ reservation.hotel.mobile }}</p>
+                </div>
+            </div>
+            <div class="col-md-6 text-right">
+                <div class="receipt-right">
+                    <h5>Summary</h5>
+                    <p class="mb-2"><b>Check-In:</b> {{ reservation.check_in_date }}</p>
+                    <p class="mb-2"><b>Check-Out:</b> {{ reservation.check_out_date }}</p>
+                    <p class="mb-2"><b>Nights:</b> {{ reservation.total_days }}</p>
+                    <p class="mb-2"><b>Adults:</b> {{ reservation.num_adults }}</p>
+                    <p class="mb-2"><b>Children:</b> {{ reservation.num_children }}</p>
+                    <p class="mb-2"><b>VAT:</b> $0.00</p>
+                    {% if reservation.saved %}
+                    <p class="mb-2 text-danger"><b>Discount:</b> -${{ reservation.saved }}</p>
+                    {% endif %}
+                    <hr>
+                    <p class="mb-2 text-success" style="font-size:1.1rem;">
+                        <b>Total:</b> ${{ reservation.total|floatformat:2 }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+        <p style="text-align:center;color:#aaa;font-size:.85rem;">
+            Thank you for choosing Red HMS. For any queries: support@redhms.com
+        </p>
+
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-center gap-3 no-print mt-3">
+            <button id="printButton" class="btn btn-dark">
+                <i class="fas fa-print"></i> Print Invoice
+            </button>
+            <a href="{% url 'guests:reservation_detail' reservation.booking_id %}"
+               class="btn btn-outline-secondary ml-2">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    document.getElementById('printButton').addEventListener('click', function(){ window.print(); });
+</script>
+</body>
+</html>

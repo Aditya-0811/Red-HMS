@@ -1,0 +1,106 @@
+{% extends 'partials/dashboard_base.html' %}
+{% load static %}
+{% block title %}Revenue Report – Red HMS{% endblock %}
+
+{% block content %}
+<div id="dashboard">
+    <a href="#" class="utf_dashboard_nav_responsive"><i class="fa fa-reorder"></i> Dashboard Menu</a>
+    {% include 'partials/dashboard_sidebar.html' %}
+    <div class="utf_dashboard_content">
+        <div id="titlebar" class="dashboard_gradient">
+            <div class="row"><div class="col-md-12">
+                <h2>Revenue Report</h2>
+                <nav id="breadcrumbs"><ul>
+                    <li><a href="{% url 'rooms:index' %}">Home</a></li>
+                    <li><a href="{% url 'reports:dashboard' %}">Dashboard</a></li>
+                    <li>Revenue</li>
+                </ul></nav>
+            </div></div>
+        </div>
+        <!-- Target setter + variance bars -->
+        <div class="row margin-top-0 margin-bottom-20">
+            <div class="col-lg-12 col-md-12">
+                <div class="utf_dashboard_list_box" style="padding:20px;">
+                    <h4><i class="fas fa-crosshairs" style="color:#ec4899;"></i> Monthly Target Comparison</h4>
+                    <form method="POST" style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+                        {% csrf_token %}
+                        <label style="margin:0;font-weight:600;font-size:.85rem;">Monthly Target ($):</label>
+                        <input type="number" name="target" value="{{ monthly_target }}" min="1"
+                               style="width:140px;padding:6px 10px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:.9rem;">
+                        <button type="submit" class="button" style="padding:7px 16px;font-size:.85rem;">
+                            <i class="fas fa-check"></i> Set
+                        </button>
+                    </form>
+                    {% for item in revenue_with_variance %}
+                    <div style="margin-bottom:18px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                            <span style="font-weight:700;font-size:.9rem;">{{ item.month|date:"F Y" }}</span>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <span style="font-weight:700;font-size:.9rem;
+                                             color:{% if item.variance >= 0 %}#22c55e{% else %}#ef4444{% endif %};">
+                                    ${{ item.total|floatformat:0 }}
+                                </span>
+                                <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:.75rem;font-weight:700;
+                                             background:{% if item.variance >= 0 %}#f0fdf4{% else %}#fef2f2{% endif %};
+                                             color:{% if item.variance >= 0 %}#166534{% else %}#991b1b{% endif %};">
+                                    {% if item.variance >= 0 %}+{% endif %}${{ item.variance|floatformat:0 }}
+                                </span>
+                            </div>
+                        </div>
+                        <div style="height:10px;background:#e5e5e5;border-radius:5px;overflow:hidden;">
+                            <div style="height:100%;width:{{ item.pct }}%;border-radius:5px;transition:width .6s ease;
+                                        background:{% if item.pct >= 100 %}#22c55e{% elif item.pct >= 70 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
+                        </div>
+                        <small style="color:#aaa;font-size:.75rem;">Target: ${{ monthly_target|floatformat:0 }}</small>
+                    </div>
+                    {% empty %}
+                    <p style="color:#aaa;">No revenue data yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12 col-md-12">
+                <div class="utf_dashboard_list_box table-responsive margin-top-0">
+                    <h4><i class="fa fa-bar-chart"></i> Monthly Revenue Breakdown</h4>
+                    <div class="dashboard-list-box table-responsive invoices with-icons">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Bookings</th>
+                                    <th>Revenue</th>
+                                    <th>Avg/Booking</th>
+                                    <th>Bar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in revenue_by_month %}
+                                <tr>
+                                    <td><strong>{{ row.month|date:"F Y" }}</strong></td>
+                                    <td>{{ row.count }}</td>
+                                    <td style="color:#1a1a1a;font-weight:700;">${{ row.total|floatformat:2 }}</td>
+                                    <td>
+                                        {% if row.count %}
+                                            ${{ row.total|floatformat:0 }}
+                                        {% else %}—{% endif %}
+                                    </td>
+                                    <td style="width:200px;">
+                                        <div style="background:#e5e5e5;border-radius:4px;overflow:hidden;height:12px;">
+                                            <div style="background:#1a1a1a;height:100%;width:{% widthratio row.total 10000 100 %}%;"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5" style="text-align:center;color:#aaa;padding:30px;">No revenue data yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

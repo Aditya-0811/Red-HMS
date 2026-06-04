@@ -1,0 +1,278 @@
+{% extends 'partials/dashboard_base.html' %}
+{% load static %}
+{% block title %}All Bookings – Red HMS{% endblock %}
+
+{% block content %}
+<div id="dashboard">
+    <a href="#" class="utf_dashboard_nav_responsive">
+        <i class="fa fa-reorder"></i> Dashboard Menu
+    </a>
+    {% include 'partials/dashboard_sidebar.html' %}
+
+    <div class="utf_dashboard_content">
+        <div id="titlebar" class="dashboard_gradient">
+            <div class="row"><div class="col-md-12">
+                <h2>All Bookings</h2>
+                <nav id="breadcrumbs"><ul>
+                    <li><a href="{% url 'rooms:index' %}">Home</a></li>
+                    <li><a href="{% url 'reports:dashboard' %}">Dashboard</a></li>
+                    <li>All Bookings</li>
+                </ul></nav>
+            </div></div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12 col-md-12">
+                <div class="utf_dashboard_list_box table-responsive margin-top-0">
+
+                    <!-- ── Filter bar ── -->
+                    <form method="GET" style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 14px;background:#f8f8f8;border-radius:8px;margin-bottom:14px;border:1px solid var(--border);">
+                        <!-- Search input -->
+                        <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:180px;">
+                            <i class="fas fa-search" style="color:#aaa;font-size:.8rem;"></i>
+                            <input type="text" name="q" value="{{ search_query }}"
+                                   placeholder="Search by name, email, hotel, ID…"
+                                   style="border:none;background:transparent;outline:none;font-size:.83rem;width:100%;color:#1d1d1f;">
+                        </div>
+                        <!-- Divider -->
+                        <span style="width:1px;height:22px;background:var(--border);flex-shrink:0;"></span>
+                        <!-- Status filter pills -->
+                        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+                            <span style="font-size:.72rem;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.05em;margin-right:2px;">Status:</span>
+                            {% for val, label, color in filter_statuses %}
+                            <button type="submit" name="status" value="{{ val }}"
+                                    style="padding:3px 11px;border-radius:20px;border:1.5px solid {{ color }};
+                                           background:{% if status_filter == val %}{{ color }}{% else %}transparent{% endif %};
+                                           color:{% if status_filter == val %}#fff{% else %}{{ color }}{% endif %};
+                                           font-size:.73rem;font-weight:700;cursor:pointer;line-height:1.5;
+                                           transition:background .15s,color .15s;">
+                                {{ label }}
+                            </button>
+                            {% endfor %}
+                            {% if status_filter or search_query %}
+                            <a href="{% url 'reports:all_bookings' %}" style="padding:3px 10px;border-radius:20px;border:1.5px solid #ccc;color:#888;font-size:.73rem;font-weight:700;text-decoration:none;line-height:1.5;">
+                                <i class="fas fa-times"></i> Clear
+                            </a>
+                            {% endif %}
+                        </div>
+                    </form>
+
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+                        <h4 style="margin:0;font-size:.95rem;">
+                            Bookings
+                            <span style="font-weight:400;color:#888;font-size:.82rem;">({{ reservations.count }} result{{ reservations.count|pluralize }})</span>
+                        </h4>
+                        <a href="{% url 'reports:export_bookings_csv' %}?status={{ status_filter }}&q={{ search_query }}"
+                           class="button border" style="padding:7px 14px;font-size:.82rem;">
+                            <i class="fas fa-download"></i> Export CSV
+                        </a>
+                    </div>
+                    <div class="dashboard-list-box table-responsive invoices with-icons">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Guest</th>
+                                    <th>Hotel</th>
+                                    <th>Room Type</th>
+                                    <th>Check-In</th>
+                                    <th>Check-Out</th>
+                                    <th>Nights</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in reservations %}
+                                <tr>
+                                    <td><code>#{{ r.booking_id }}</code></td>
+                                    <td>
+                                        <strong>{{ r.full_name|truncatechars:16 }}</strong><br>
+                                        <small style="color:#aaa;">{{ r.email }}</small>
+                                    </td>
+                                    <td>{{ r.hotel.name|truncatechars:16 }}</td>
+                                    <td>{{ r.room_type.type }}</td>
+                                    <td>{{ r.check_in_date }}</td>
+                                    <td>{{ r.check_out_date }}</td>
+                                    <td>{{ r.total_days }}</td>
+                                    <td><strong>${{ r.total }}</strong></td>
+                                    <td>
+                                        <span class="badge text-uppercase"
+                                              style="background:{% if r.payment_status == 'paid' %}#27ae60{% elif r.payment_status == 'failed' %}#e74c3c{% else %}#f39c12{% endif %};color:#fff;padding:3px 8px;border-radius:4px;">
+                                            {{ r.payment_status }}
+                                        </span>
+                                    </td>
+                                    <td style="white-space:nowrap;">
+                                        <a href="{% url 'billing:invoice' r.booking_id %}"
+                                           class="button gray" style="padding:4px 8px;font-size:.8rem;" title="Invoice">
+                                            <i class="fa fa-file-text-o"></i>
+                                        </a>
+                                        <button class="email-btn" data-id="{{ r.booking_id }}"
+                                                style="padding:4px 8px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;
+                                                       border-radius:4px;font-size:.8rem;cursor:pointer;margin-left:3px;" title="Email">
+                                            📧
+                                        </button>
+                                        <button class="notes-btn" data-id="{{ r.booking_id }}"
+                                                style="padding:4px 8px;background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd;
+                                                       border-radius:4px;font-size:.8rem;cursor:pointer;margin-left:3px;" title="Notes">
+                                            📝
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="10" style="text-align:center;color:#aaa;padding:30px;">
+                                    No reservations found.
+                                </td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Email Modal -->
+<div id="email-modal" style="display:none;position:fixed;inset:0;z-index:9999;
+     background:rgba(0,0,0,.5);align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;padding:28px;max-width:560px;width:90%;
+                position:relative;max-height:85vh;overflow-y:auto;">
+        <button id="email-close" style="position:absolute;top:12px;right:16px;background:none;border:none;
+                font-size:1.4rem;cursor:pointer;color:#888;line-height:1;">×</button>
+        <h4 style="margin-bottom:16px;margin-right:24px;">📧 Send Booking Email</h4>
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+            <button class="email-tab button" data-tpl="confirmation" style="padding:6px 14px;font-size:.82rem;">✅ Confirmation</button>
+            <button class="email-tab button border" data-tpl="reminder" style="padding:6px 14px;font-size:.82rem;">⏰ Reminder</button>
+        </div>
+        <div style="background:#f9f9f9;border-radius:8px;padding:16px;margin-bottom:16px;font-size:.85rem;">
+            <div style="margin-bottom:8px;"><span style="color:#888;">To:</span> <span id="email-to">—</span></div>
+            <div style="margin-bottom:8px;"><span style="color:#888;">Subject:</span> <strong id="email-subject">—</strong></div>
+            <div style="color:#888;margin-bottom:4px;">Body:</div>
+            <pre id="email-body" style="white-space:pre-wrap;font-size:.82rem;color:#444;background:transparent;border:none;padding:0;margin:0;font-family:inherit;"></pre>
+        </div>
+        <div id="email-sent" style="display:none;background:#f0fdf4;color:#166534;padding:10px 14px;
+             border-radius:6px;margin-bottom:14px;font-size:.88rem;">✓ Email sent successfully!</div>
+        <button id="email-send" class="button" style="width:100%;">✓ Send Email</button>
+    </div>
+</div>
+
+<!-- Notes Modal -->
+<div id="notes-modal" style="display:none;position:fixed;inset:0;z-index:9999;
+     background:rgba(0,0,0,.5);align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;padding:28px;max-width:540px;width:90%;
+                position:relative;max-height:85vh;display:flex;flex-direction:column;">
+        <button id="notes-close" style="position:absolute;top:12px;right:16px;background:none;border:none;
+                font-size:1.4rem;cursor:pointer;color:#888;line-height:1;">×</button>
+        <h4 style="margin-bottom:4px;margin-right:24px;">📝 Booking Notes</h4>
+        <div style="font-size:.8rem;color:#888;margin-bottom:12px;">Booking <code id="notes-bid"></code></div>
+        <div id="notes-list" style="flex:1;overflow-y:auto;margin-bottom:16px;max-height:300px;min-height:60px;"></div>
+        <textarea id="notes-draft" rows="3" placeholder="Write a note…"
+                  style="width:100%;padding:10px;border:1.5px solid #e0e0e0;border-radius:8px;
+                         font-size:.88rem;margin-bottom:8px;box-sizing:border-box;"></textarea>
+        <button id="notes-post" class="button" style="width:100%;">Post Note</button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ── shared helper ── */
+function roleColor(r){
+    return r==='Admin'?'#ec4899':r==='Manager'?'#8b5cf6':r==='Receptionist'?'#3b82f6':r==='Housekeeping'?'#22c55e':'#888';
+}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* ══ EMAIL MODAL ══ */
+var emailModal=document.getElementById('email-modal');
+var emailBid='',emailTpl='confirmation';
+document.querySelectorAll('.email-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+        emailBid=btn.dataset.id;emailTpl='confirmation';
+        document.getElementById('email-sent').style.display='none';
+        document.querySelectorAll('.email-tab').forEach(function(t,i){
+            t.className='email-tab '+(i===0?'button':'button border');
+        });
+        loadEmailPreview();
+        emailModal.style.display='flex';
+    });
+});
+document.getElementById('email-close').addEventListener('click',function(){emailModal.style.display='none';});
+document.querySelectorAll('.email-tab').forEach(function(tab){
+    tab.addEventListener('click',function(){
+        emailTpl=tab.dataset.tpl;
+        document.querySelectorAll('.email-tab').forEach(function(t){
+            t.className=t.dataset.tpl===emailTpl?'email-tab button':'email-tab button border';
+        });
+        loadEmailPreview();
+    });
+});
+function loadEmailPreview(){
+    fetch('/reports/bookings/'+emailBid+'/email/?type=preview&tpl='+emailTpl)
+    .then(function(r){return r.json();}).then(function(d){
+        document.getElementById('email-to').textContent=d.to||'—';
+        document.getElementById('email-subject').textContent=d.subject||'—';
+        document.getElementById('email-body').textContent=d.body||'';
+    });
+}
+document.getElementById('email-send').addEventListener('click',function(){
+    var fd=new FormData();fd.append('tpl',emailTpl);fd.append('csrfmiddlewaretoken','{{ csrf_token }}');
+    fetch('/reports/bookings/'+emailBid+'/email/',{method:'POST',body:fd})
+    .then(function(r){return r.json();}).then(function(d){
+        if(d.success)document.getElementById('email-sent').style.display='block';
+        else alert(d.error||'Failed to send email.');
+    });
+});
+
+/* ══ NOTES MODAL ══ */
+var notesModal=document.getElementById('notes-modal');
+var notesBid='';
+document.querySelectorAll('.notes-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+        notesBid=btn.dataset.id;
+        document.getElementById('notes-bid').textContent='#'+notesBid;
+        document.getElementById('notes-draft').value='';
+        loadNotes();
+        notesModal.style.display='flex';
+    });
+});
+document.getElementById('notes-close').addEventListener('click',function(){notesModal.style.display='none';});
+function loadNotes(){
+    fetch('/reports/bookings/'+notesBid+'/notes/')
+    .then(function(r){return r.json();}).then(function(d){renderNotes(d.notes);});
+}
+function renderNotes(notes){
+    var list=document.getElementById('notes-list');
+    if(!notes||!notes.length){
+        list.innerHTML='<p style="color:#aaa;font-size:.85rem;text-align:center;padding:20px;">No notes yet.</p>';return;
+    }
+    list.innerHTML=notes.map(function(n){
+        return '<div style="background:'+(n.pinned?'#fff9f0':'#f9f9f9')+';border-radius:8px;padding:12px;margin-bottom:8px;'+(n.pinned?'border-left:3px solid #f59e0b;':'')+'">'
+            +(n.pinned?'<div style="font-size:.72rem;color:#f59e0b;font-weight:700;margin-bottom:4px;">📌 PINNED</div>':'')
+            +'<div style="font-size:.88rem;color:#333;margin-bottom:8px;">'+escHtml(n.text)+'</div>'
+            +'<div style="display:flex;justify-content:space-between;align-items:center;">'
+            +'<div style="font-size:.75rem;"><span style="font-weight:700;color:'+roleColor(n.role)+';">'+escHtml(n.author)+'</span>'
+            +' <span style="color:#aaa;font-size:.7rem;">'+escHtml(n.role)+'</span> · <span style="color:#888;">'+escHtml(n.time)+'</span></div>'
+            +'<div style="display:flex;gap:6px;">'
+            +'<button onclick="postNoteAction({action:\'pin\',note_id:'+n.id+'})" style="background:none;border:1px solid #e0e0e0;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:.75rem;">'+(n.pinned?'Unpin':'📌 Pin')+'</button>'
+            +'<button onclick="postNoteAction({action:\'delete\',note_id:'+n.id+'})" style="background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:.75rem;">🗑 Delete</button>'
+            +'</div></div></div>';
+    }).join('');
+}
+function postNoteAction(data){
+    var fd=new FormData();
+    for(var k in data)fd.append(k,data[k]);
+    fd.append('csrfmiddlewaretoken','{{ csrf_token }}');
+    fetch('/reports/bookings/'+notesBid+'/notes/',{method:'POST',body:fd})
+    .then(function(r){return r.json();}).then(function(){loadNotes();});
+}
+document.getElementById('notes-post').addEventListener('click',function(){
+    var text=document.getElementById('notes-draft').value.trim();
+    if(!text)return;
+    postNoteAction({action:'add',text:text});
+    document.getElementById('notes-draft').value='';
+});
+</script>
+{% endblock %}
